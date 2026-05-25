@@ -87,10 +87,24 @@ For an overall review decision:
 - **Request Changes** if there are blocking issues.
 - **Comment only** if you only have suggestions.
 
+Before posting, read the token usage from `.pi-usage.json` and append it to the review body.
+
 ```bash
+# Read usage stats
+USAGE=$(cat .pi-usage.json 2>/dev/null || echo "{}")
+USAGE_MODEL=$(echo "$USAGE" | jq -r '.model // "unknown"')
+USAGE_TOKENS=$(echo "$USAGE" | jq -r '"\(.inputTokens // 0) in / \(.outputTokens // 0) out"')
+USAGE_COST=$(echo "$USAGE" | jq -r '"$\(.cost // 0)"')
+
+# Build review body with usage footer
+REVIEW_BODY="REVIEW_CONTENT
+
+---
+*🤖 Reviewed by pi — ${USAGE_MODEL}  |  ${USAGE_TOKENS}  |  ${USAGE_COST}*"
+
 # GitHub: submit a review
 sops exec-env .agent/secrets.enc.yaml 'gh pr review $1 \
-  --body "REVIEW_BODY" \
+  --body "${REVIEW_BODY}" \
   --COMMENT|--APPROVE|--REQUEST-CHANGES'
 ```
 
@@ -100,8 +114,13 @@ Use the ticket manager skill to add a comment to the associated ticket with:
 - A summary of the review (overall verdict: approved / changes requested / commented).
 - Number of blocking issues, suggestions, and positive highlights.
 - Next steps (e.g., "Please address the 2 blocking issues above, then re-request review").
+- Token usage summary (model, input/output tokens, cost) — re-read `.pi-usage.json` for updated stats.
 
 ```bash
+USAGE=$(cat .pi-usage.json 2>/dev/null || echo "{}")
+USAGE_MODEL=$(echo "$USAGE" | jq -r '.model // "unknown"')
+USAGE_TOKENS=$(echo "$USAGE" | jq -r '"\(.inputTokens // 0) in / \(.outputTokens // 0) out"')
+USAGE_COST=$(echo "$USAGE" | jq -r '"$\(.cost // 0)"')
 sops exec-env .agent/secrets.enc.yaml 'gh issue comment TICKET_ID --body "## Code Review Summary
 
 **PR:** LINK_TO_PR
@@ -119,7 +138,10 @@ sops exec-env .agent/secrets.enc.yaml 'gh issue comment TICKET_ID --body "## Cod
 - Good patterns
 - ...
 
-**Next steps:** Please address the blocking issues and re-request review."'
+**Next steps:** Please address the blocking issues and re-request review.
+
+---
+*🤖 Reviewed by pi — ${USAGE_MODEL}  |  ${USAGE_TOKENS}  |  ${USAGE_COST}*"'
 ```
 
 ### Step 8 — Cleanup

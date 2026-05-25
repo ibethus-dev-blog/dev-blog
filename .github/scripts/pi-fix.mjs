@@ -14,6 +14,7 @@
  *   COMMENT_ID, GITHUB_TOKEN
  */
 
+import fs from "fs";
 import { EventEmitter } from "events";
 import { getModel } from "@earendil-works/pi-ai";
 
@@ -99,6 +100,37 @@ function logUsage(session) {
   console.log(`💰 tokens: ${tokens.toLocaleString()}${ctx ? " / " + ctx.toLocaleString() + " " + pct : ""}  |  in: ${input.toLocaleString()}  out: ${output.toLocaleString()}  |  cache r/w: ${cacheRead.toLocaleString()} / ${cacheWrite.toLocaleString()}  |  $${cost.toFixed(4)}`);
 }
 
+function writeUsageFile(session) {
+  const modelName = session.model?.id || "unknown";
+  const modelProvider = PROVIDER || "unknown";
+  const messages = session.messages || [];
+  let input = 0, output = 0, cacheRead = 0, cacheWrite = 0, cost = 0;
+  for (const m of messages) {
+    if (m.role === "assistant" && m.usage) {
+      input += m.usage.input || 0;
+      output += m.usage.output || 0;
+      cacheRead += m.usage.cacheRead || 0;
+      cacheWrite += m.usage.cacheWrite || 0;
+      cost += m.usage.cost?.total || 0;
+    }
+  }
+  const usage = {
+    model: modelName,
+    provider: modelProvider,
+    inputTokens: input,
+    outputTokens: output,
+    totalTokens: input + output,
+    cacheReadTokens: cacheRead,
+    cacheWriteTokens: cacheWrite,
+    cost: Math.round(cost * 10000) / 10000,
+  };
+  try {
+    fs.writeFileSync(".pi-usage.json", JSON.stringify(usage, null, 2));
+  } catch (e) {
+    // best effort — writing usage file is non-critical
+  }
+}
+
 // ---- Debug: log all events to CI output ----
 let turnCount = 0;
 let toolCount = 0;
@@ -158,6 +190,7 @@ session.subscribe((event) => {
       const tools = msgs.filter((c) => c.type === "toolCall").length;
       console.log(`--- turn ${turnCount} end (${texts} texts, ${tools} tool calls, stop: ${event.message?.stopReason}) ---`);
       logUsage(session);
+      writeUsageFile(session);
       console.log();
       break;
     }
@@ -245,6 +278,7 @@ console.log(`\n📊 Final state:`);
 console.log(`   isStreaming: ${session.isStreaming}`);
 console.log(`   messages: ${session.messages.length}`);
 logUsage(session);
+writeUsageFile(session);
 const lastMsg = session.messages[session.messages.length - 1];
 if (lastMsg) {
   console.log(`   last message role: ${lastMsg.role}`);
