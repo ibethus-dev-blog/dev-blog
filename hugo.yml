@@ -1,6 +1,6 @@
 baseURL: https://blog.hot-coffee.dev/
 languageCode: fr-FR
-title: Hot Coffee Dev Blog ☕
+title: Hot Coffee · Dev Blog ☕
 theme: PaperMod
 copyright: Ivan Béthus (CC BY 4.0) - 2024-2025
 enableRobotsTXT: true
@@ -101,7 +101,7 @@ params:
     hiddenInList: true
     hiddenInSingle: false
   label:
-    text: Hot Coffee Dev Blog ☕
+    text: Hot Coffee · Dev Blog ☕
   profileMode:
     enabled: true    
   socialIcons: 
