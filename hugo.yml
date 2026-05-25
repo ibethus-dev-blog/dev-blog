@@ -73,7 +73,12 @@ markup:
 taxonomies:
   genre: genres
   tag: tags
-params: 
+params:
+  rateLimit:
+    enabled: true
+    maxTokens: 5
+    refillRate: 0.5
+    keyPrefix: "comment"
   keywords: [java, programming, software-development, devops, coding, tech-blog, development-tools, software-engineering, backend-development, developer-tips]
   ShowShareButtons: true
   hideUntranslated: true

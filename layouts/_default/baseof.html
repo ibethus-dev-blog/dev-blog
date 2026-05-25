@@ -26,6 +26,8 @@
     {{ end }}
     <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js" crossorigin></script>
     <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
+
+    {{- partial "rate_limiter.html" . -}}
 </body>
 
 </html>

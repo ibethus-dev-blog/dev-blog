@@ -1,0 +1,21 @@
+{{- /* Rate limiter partial — include in baseof.html or per-page */ -}}
+{{- $enabled := site.Params.rateLimit.enabled | default true -}}
+{{- if $enabled }}
+{{- $maxTokens := site.Params.rateLimit.maxTokens | default 5 -}}
+{{- $refillRate := site.Params.rateLimit.refillRate | default 0.5 -}}
+{{- $keyPrefix := site.Params.rateLimit.keyPrefix | default "comment" -}}
+
+<script src="{{ "js/rate-limiter.js" | relURL }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof setupRateLimiter === 'function') {
+      setupRateLimiter({
+        enabled: {{ $enabled }},
+        maxTokens: {{ $maxTokens }},
+        refillRate: {{ $refillRate }},
+        keyPrefix: "{{ $keyPrefix | safeJS }}"
+      });
+    }
+  });
+</script>
+{{- end }}
