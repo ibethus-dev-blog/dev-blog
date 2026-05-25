@@ -1,7 +1,336 @@
-.mermaid {
-    background-color: rgb(245, 245, 245) !important;
-}
+/* ============================================
+   Hot Coffee DevBlog — Purple & Blue AI 2026
+   Vibrant gradient color scheme
+   ============================================ */
 
+/* --- Existing rules (preserved) --- */
+.mermaid {
+    background-color: var(--code-bg) !important;
+}
 #swagger-ui .information-container {
     display: none;
+}
+
+/* ============================================
+   1. Gradient header & navigation
+   ============================================ */
+
+.nav {
+    position: relative;
+    background: var(--theme);
+    border-bottom: 2px solid transparent;
+    border-image: var(--gradient-primary) 1;
+}
+
+.logo a {
+    background: var(--gradient-warm);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+}
+
+#menu .active {
+    font-weight: 600;
+    border-bottom: 2px solid transparent;
+    border-image: var(--gradient-primary) 1;
+    background: var(--gradient-warm);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+#menu a:hover {
+    background: var(--gradient-warm);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ============================================
+   2. Links — gradient underline
+   ============================================ */
+
+a {
+    transition: color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.post-content a,
+.toc a:hover,
+.footer a {
+    color: var(--link-color);
+    box-shadow: 0 1px 0 var(--accent-purple);
+}
+
+.post-content a:hover,
+.footer a:hover {
+    color: var(--link-hover-color);
+    box-shadow: 0 2px 0 var(--accent-blue);
+}
+
+.footer a {
+    border-bottom: none;
+    color: var(--link-color);
+}
+
+.footer a:hover {
+    border-bottom: none;
+}
+
+/* ============================================
+   3. Post entry cards — gradient borders
+   ============================================ */
+
+.post-entry {
+    border: 1px solid var(--border);
+    transition: transform 0.2s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.post-entry:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-purple);
+    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.12), 0 1px 4px rgba(59, 130, 246, 0.08);
+}
+
+.first-entry {
+    position: relative;
+}
+
+.first-entry::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-primary);
+    border-radius: 0 0 var(--radius) var(--radius);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.first-entry:hover::after {
+    opacity: 1;
+}
+
+/* ============================================
+   4. Buttons — gradient backgrounds
+   ============================================ */
+
+.button {
+    background: var(--gradient-subtle);
+    border: 1px solid transparent;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    font-weight: 500;
+}
+
+.button:hover {
+    border-color: var(--accent-purple);
+    box-shadow: 0 2px 12px rgba(124, 58, 237, 0.15);
+}
+
+.button .button-inner {
+    background: var(--gradient-warm);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.pagination a {
+    background: var(--gradient-primary);
+    color: white;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.pagination a:hover {
+    opacity: 0.9;
+    transform: scale(1.03);
+}
+
+/* ============================================
+   5. Profile mode — enhanced
+   ============================================ */
+
+.profile {
+    position: relative;
+}
+
+.profile .profile_inner {
+    padding: 32px 24px;
+    border-radius: 16px;
+    background: var(--gradient-subtle);
+    border: 1px solid var(--border);
+}
+
+.profile img {
+    box-shadow: 0 0 0 3px var(--accent-purple), 0 0 0 6px rgba(124, 58, 237, 0.25), 0 8px 32px rgba(124, 58, 237, 0.2);
+    transition: box-shadow 0.3s ease;
+}
+
+.profile img:hover {
+    box-shadow: 0 0 0 3px var(--accent-blue), 0 0 0 6px rgba(59, 130, 246, 0.3), 0 12px 40px rgba(124, 58, 237, 0.3);
+}
+
+/* ============================================
+   6. Headings — subtle gradient
+   ============================================ */
+
+.post-content h1,
+.post-content h2 {
+    background: var(--gradient-warm);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}
+
+.post-title,
+.page-header h1 {
+    background: var(--gradient-warm);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ============================================
+   7. Blockquotes — colorful left border
+   ============================================ */
+
+.post-content blockquote {
+    border-inline-start: 3px solid transparent;
+    border-image: var(--gradient-primary) 1;
+    background: var(--gradient-subtle);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 12px 16px;
+}
+
+/* ============================================
+   8. Code blocks — subtle glow
+   ============================================ */
+
+.post-content .highlight:not(table) {
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.08);
+}
+
+.post-content pre code {
+    border: 1px solid var(--tertiary);
+}
+
+/* ============================================
+   9. Tags — colored pills
+   ============================================ */
+
+.post-tags a {
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.post-tags a:hover {
+    color: white;
+    background: var(--gradient-primary);
+    border-color: transparent;
+}
+
+/* ============================================
+   10. Horizontal rule — gradient
+   ============================================ */
+
+.post-content hr {
+    background: var(--gradient-primary);
+    height: 2px;
+    border: none;
+    border-radius: 1px;
+}
+
+/* ============================================
+   11. TOC — enhanced
+   ============================================ */
+
+.toc {
+    border-color: var(--accent-purple);
+    border-left: 3px solid var(--accent-purple);
+}
+
+/* ============================================
+   12. Scrollbar — accent colored
+   ============================================ */
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--accent-purple), var(--accent-blue));
+    border-radius: var(--radius);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #6d28d9, #2563eb);
+}
+
+/* ============================================
+   13. Top link / back to top button
+   ============================================ */
+
+.top-link {
+    background: var(--gradient-primary);
+    color: white;
+    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3);
+}
+
+.top-link:hover {
+    color: white;
+    opacity: 0.9;
+}
+
+.top-link svg {
+    filter: none;
+}
+
+/* ============================================
+   14. Share buttons — accent touch
+   ============================================ */
+
+.share-buttons {
+    border-color: var(--accent-purple);
+}
+
+/* ============================================
+   15. Paginav — subtle accent
+   ============================================ */
+
+.paginav a:hover {
+    background: var(--gradient-subtle);
+}
+
+/* ============================================
+   16. Footer — subtle gradient line
+   ============================================ */
+
+.footer {
+    border-top: 2px solid transparent;
+    border-image: var(--gradient-primary) 1;
+}
+
+/* ============================================
+   17. Selection color
+   ============================================ */
+
+::selection {
+    background: rgba(124, 58, 237, 0.2);
+    color: var(--primary);
+}
+
+.dark ::selection {
+    background: rgba(167, 139, 250, 0.3);
+}
+
+/* ============================================
+   18. Theme toggle enhancement
+   ============================================ */
+
+#theme-toggle {
+    transition: color 0.3s ease;
+}
+
+#theme-toggle:hover {
+    background: var(--gradient-warm);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }

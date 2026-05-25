@@ -1,0 +1,63 @@
+/*
+ * Theme: Purple & Blue — AI 2026
+ * A vibrant color scheme with purple-to-blue gradients
+ */
+
+:root {
+    --gap: 24px;
+    --content-gap: 20px;
+    --nav-width: 1024px;
+    --main-width: 720px;
+    --header-height: 60px;
+    --footer-height: 60px;
+    --radius: 8px;
+
+    /* Accent colors */
+    --accent-purple: #7c3aed;
+    --accent-blue: #3b82f6;
+    --accent-pink: #a855f7;
+    --accent-cyan: #06b6d4;
+    --gradient-primary: linear-gradient(135deg, #7c3aed, #3b82f6);
+    --gradient-warm: linear-gradient(135deg, #a855f7, #7c3aed, #3b82f6);
+    --gradient-subtle: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(59, 130, 246, 0.08));
+
+    /* Light mode — clean with purple/blue accents */
+    --theme: rgb(250, 250, 252);
+    --entry: rgb(255, 255, 255);
+    --primary: rgb(30, 27, 48);
+    --secondary: rgb(107, 102, 130);
+    --tertiary: rgb(235, 233, 245);
+    --content: rgb(31, 28, 46);
+    --code-block-bg: rgb(26, 25, 40);
+    --code-bg: rgb(243, 241, 252);
+    --border: rgb(232, 230, 242);
+
+    /* Link & accent */
+    --link-color: #6d28d9;
+    --link-hover-color: #4c1d95;
+    --link-underline: linear-gradient(135deg, #7c3aed, #3b82f6);
+}
+
+.dark {
+    --theme: rgb(18, 17, 28);
+    --entry: rgb(30, 28, 48);
+    --primary: rgb(226, 223, 240);
+    --secondary: rgb(160, 155, 185);
+    --tertiary: rgb(55, 52, 78);
+    --content: rgb(210, 207, 228);
+    --code-block-bg: rgb(22, 20, 38);
+    --code-bg: rgb(38, 36, 58);
+    --border: rgb(50, 47, 72);
+
+    /* Link & accent in dark mode */
+    --link-color: #a78bfa;
+    --link-hover-color: #c4b5fd;
+}
+
+.list {
+    background: var(--code-bg);
+}
+
+.dark.list {
+    background: var(--theme);
+}
