@@ -34,7 +34,7 @@ jobs:
         run: npm ci || true
 
       - name: Install pi coding agent
-        run: npm install -g @earendil-works/pi-coding-agent
+        run: npm install --no-save @earendil-works/pi-coding-agent
 
       - name: Install SOPS
         run: |
@@ -58,6 +58,8 @@ jobs:
 
       - name: Comment on failure
         if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh issue comment "${{ github.event.issue.number }}" \
             --body "⚠️ Pi implementation failed. [Workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
