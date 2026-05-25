@@ -1,0 +1,71 @@
+name: Pi - Fix from PR Comment
+
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: "pi-fix-${{ github.event.issue.number }}"
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  fix:
+    if: |
+      github.event.comment.body &&
+      startsWith(github.event.comment.body, '/fix') &&
+      github.event.issue.pull_request
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # fetch all history so the prompt can checkout the PR branch
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install project dependencies
+        run: npm ci || true
+
+      - name: Install pi coding agent
+        run: npm install --no-save @earendil-works/pi-coding-agent
+
+      - name: Install SOPS
+        run: |
+          curl -sLO https://github.com/getsops/sops/releases/download/v3.12.1/sops-v3.12.1.linux.amd64
+          chmod +x sops-v3.12.1.linux.amd64
+          sudo mv sops-v3.12.1.linux.amd64 /usr/local/bin/sops
+          sops --version
+
+      - name: Run pi fix
+        env:
+          PI_PROVIDER: ${{ vars.PI_PROVIDER }}
+          PI_MODEL: ${{ vars.PI_MODEL }}
+          PI_THINKING: ${{ vars.PI_THINKING }}
+          PI_API_KEY: ${{ secrets.PI_API_KEY }}
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          PR_TITLE: ${{ github.event.issue.title }}
+          PR_BODY: ${{ github.event.issue.body }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: node .github/scripts/pi-fix.mjs
+
+      - name: Comment on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment "${{ github.event.issue.number }}" \
+            --body "⚠️ Pi fix failed. [Workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
