@@ -15,6 +15,10 @@ gh variable set PI_PROVIDER  --body "anthropic"          # or: openai, groq, dee
 # Optional — pi uses its defaults if unset
 gh variable set PI_MODEL     --body "claude-sonnet-4-20250514"
 gh variable set PI_THINKING  --body "low"                # off | minimal | low | medium | high | xhigh
+
+# Required for surge.sh preview deploys (see surge-preview.yml)
+gh secret set SURGE_LOGIN --body "your-surge-email@example.com"
+gh secret set SURGE_TOKEN --body "your-surge-token"          # get via: surge token
 ```
 
 ### 2. SOPS secrets file
@@ -45,3 +49,19 @@ Comment `/implement` on any open issue. The bot will:
 5. Comment on the issue with the PR link
 
 If something fails, the workflow comments on the issue with a link to the failed run.
+
+## Surge.sh Preview Deploys
+
+PRs created by the pi pipeline (or any PR) are automatically deployed to **Surge.sh** at `test.hot-coffee.dev` via a separate workflow (`.github/workflows/surge-preview.yml`). It triggers on PR `opened`, `synchronize`, and `reopened`.
+
+The build steps are **identical** to the production Hugo Pages workflow — same Hugo version, flags, and dependencies.
+
+To set up Surge:
+
+```bash
+npm install -g surge
+surge token
+
+gh secret set SURGE_LOGIN --body "your@email.com"
+gh secret set SURGE_TOKEN --body "your-token-here"
+```
