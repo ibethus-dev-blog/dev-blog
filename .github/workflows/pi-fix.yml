@@ -54,7 +54,7 @@ jobs:
           PI_THINKING: ${{ vars.PI_THINKING }}
           PI_API_KEY: ${{ secrets.PI_API_KEY }}
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PROJECT_TOKEN }}
           PR_NUMBER: ${{ github.event.issue.number }}
           PR_TITLE: ${{ github.event.issue.title }}
           PR_BODY: ${{ github.event.issue.body }}
