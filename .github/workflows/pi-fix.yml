@@ -26,7 +26,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # fetch all history so the prompt can checkout the PR branch
+          fetch-depth: 0  # fetch all history so the prompt can work with branches
+          token: ${{ secrets.GITHUB_TOKEN }}  # use PAT so git push triggers other workflows
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -66,6 +67,7 @@ jobs:
         if: failure()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.issue.number }}
         run: |
-          gh pr comment "${{ github.event.issue.number }}" \
+          gh pr comment "${PR_NUMBER}" \
             --body "⚠️ Pi fix failed. [Workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"

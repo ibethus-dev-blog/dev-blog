@@ -38,9 +38,9 @@ sops exec-env .agent/secrets.enc.yaml 'gh pr diff $1'
 ```
 
 Also read these environment variables for context:
-- **PR_NUMBER**: The PR number.
-- **PR_TITLE**: The PR title.
-- **PR_BODY**: The PR description body.
+- **PR_NUMBER** (env): The PR number.
+- **PR_TITLE** (env): The PR title.
+- **PR_BODY** (env): The PR description body.
 
 ### Step 3 — Fetch PR Comments & Reviews (if needed)
 If the fix instruction references other comments or reviews, fetch them:
