@@ -13,7 +13,10 @@
  *   ISSUE_NUMBER, ISSUE_TITLE, ISSUE_BODY, GITHUB_TOKEN
  */
 
+import { EventEmitter } from "events";
 import { getModel } from "@earendil-works/pi-ai";
+
+EventEmitter.defaultMaxListeners = 20;
 import {
   AuthStorage,
   createAgentSession,
@@ -26,6 +29,12 @@ const API_KEY = process.env.PI_API_KEY;
 const MODEL_ID = process.env.PI_MODEL;
 const THINKING = process.env.PI_THINKING;
 const ISSUE_NUMBER = process.env.ISSUE_NUMBER;
+
+// ---- Suppress internal pi SDK AbortSignal listener warning ----
+process.on("warning", (w) => {
+  if (w.name === "MaxListenersExceededWarning" && w.message.includes("AbortSignal")) return;
+  console.warn(w);
+});
 
 // ---- Validate required vars ----
 const missing = [];
@@ -68,6 +77,25 @@ const { session } = await createAgentSession({
   ...(model && { model }),
   ...(THINKING && { thinkingLevel: THINKING }),
 });
+
+// ---- Cost/context tracking ----
+function logUsage(session) {
+  const messages = session.messages;
+  let input = 0, output = 0, cacheRead = 0, cacheWrite = 0, cost = 0;
+  for (const m of messages) {
+    if (m.role === "assistant" && m.usage) {
+      input += m.usage.input || 0;
+      output += m.usage.output || 0;
+      cacheRead += m.usage.cacheRead || 0;
+      cacheWrite += m.usage.cacheWrite || 0;
+      cost += m.usage.cost?.total || 0;
+    }
+  }
+  const tokens = input + output;
+  const ctx = session.model?.contextWindow || 0;
+  const pct = ctx ? `(${((tokens / ctx) * 100).toFixed(1)}%)` : "";
+  console.log(`💰 tokens: ${tokens.toLocaleString()}${ctx ? " / " + ctx.toLocaleString() + " " + pct : ""}  |  in: ${input.toLocaleString()}  out: ${output.toLocaleString()}  |  cache r/w: ${cacheRead.toLocaleString()} / ${cacheWrite.toLocaleString()}  |  $${cost.toFixed(4)}`);
+}
 
 // ---- Debug: log all events to CI output ----
 let turnCount = 0;
@@ -126,7 +154,9 @@ session.subscribe((event) => {
       const msgs = event.message?.content || [];
       const texts = msgs.filter((c) => c.type === "text").length;
       const tools = msgs.filter((c) => c.type === "toolCall").length;
-      console.log(`--- turn ${turnCount} end (${texts} texts, ${tools} tool calls, stop: ${event.message?.stopReason}) ---\n`);
+      console.log(`--- turn ${turnCount} end (${texts} texts, ${tools} tool calls, stop: ${event.message?.stopReason}) ---`);
+      logUsage(session);
+      console.log();
       break;
     }
 
@@ -152,19 +182,84 @@ session.subscribe((event) => {
   }
 });
 
+let agentFailed = false;
+let agentFailedReason = "";
+
+// ---- Catch unhandled rejections (e.g. internal pi errors) ----
+process.on("unhandledRejection", (reason) => {
+  console.error(`🔥 unhandledRejection: ${reason?.message || reason}`);
+  if (reason?.stack) console.error(reason.stack);
+  agentFailed = true;
+  agentFailedReason = reason?.message || String(reason);
+});
+
+// ---- Watch for agent ending (covers cases where prompt() hangs) ----
+session.subscribe((event) => {
+  if (event.type === "agent_end") {
+    // Agent ended without error from our perspective — but check messages
+    const last = session.messages[session.messages.length - 1];
+    if (last?.role === "assistant" && last.stopReason === "error") {
+      agentFailed = true;
+      agentFailedReason = `stopReason=error on last assistant message`;
+    }
+  }
+});
+
 // ---- Run the prompt template ----
 const config = [PROVIDER, model?.id || "default", THINKING || "default"]
   .filter(Boolean)
   .join(", ");
 console.log(`🚀 /implement-ticket ${ISSUE_NUMBER}  (${config})\n`);
+
+// Race the prompt against a timeout (prevents hanging if API errors are swallowed)
+const PROMPT_TIMEOUT_MS = 25 * 60 * 1000; // 25 min (workflow timeout is 30)
+let timedOut = false;
+const timeout = setTimeout(() => {
+  timedOut = true;
+  console.error(`\n⏰ Prompt timed out after ${PROMPT_TIMEOUT_MS / 60000}min`);
+  session.abort().catch(() => {});
+}, PROMPT_TIMEOUT_MS);
+
 try {
   await session.prompt(`/implement-ticket ${ISSUE_NUMBER}`);
-  console.log("\n✅ Done");
+  clearTimeout(timeout);
+  console.log("\n✅ prompt() resolved");
 } catch (err) {
+  clearTimeout(timeout);
   console.error(`\n💥 Agent threw: ${err.message}`);
   if (err.cause) console.error(`   cause: ${err.cause}`);
   if (err.stack) console.error(err.stack);
   process.exitCode = 1;
 }
 
+// ---- Final state dump ----
+console.log(`\n📊 Final state:`);
+console.log(`   isStreaming: ${session.isStreaming}`);
+console.log(`   messages: ${session.messages.length}`);
+logUsage(session);
+const lastMsg = session.messages[session.messages.length - 1];
+if (lastMsg) {
+  console.log(`   last message role: ${lastMsg.role}`);
+  if (lastMsg.role === "assistant") {
+    console.log(`   stopReason: ${lastMsg.stopReason}`);
+    const lastContent = lastMsg.content?.[lastMsg.content.length - 1];
+    if (lastContent?.type === "text") {
+      console.log(`   last text: ${lastContent.text?.slice(0, 300)}`);
+    }
+  }
+}
+const errMsg = session.messages.find((m) => m.role === "assistant" && m.stopReason === "error");
+if (errMsg) {
+  console.error(`⚠️  Found assistant message with stopReason=error`);
+}
+
 session.dispose();
+
+if (timedOut) {
+  console.error("⏰ Exiting due to timeout");
+  process.exit(1);
+}
+if (agentFailed) {
+  console.error(`❌ Exiting due to agent failure: ${agentFailedReason}`);
+  process.exit(1);
+}
