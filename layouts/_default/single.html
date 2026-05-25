@@ -25,6 +25,7 @@
       {{- partial "translation_list.html" . -}}
       {{- partial "edit_post.html" . -}}
       {{- partial "post_canonical.html" . -}}
+      <span class="post-reading-time">· {{ partial "reading-time.html" . }}</span>
     </div>
     {{- end }}
   </header>

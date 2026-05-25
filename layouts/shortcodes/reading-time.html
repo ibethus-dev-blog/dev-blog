@@ -1,0 +1,11 @@
+{{- /* reading-time shortcode: displays estimated reading time */ -}}
+{{- $wordCount := .Page.Content | countwords -}}
+{{- $readingSpeed := 200 -}}
+{{- $minutes := div $wordCount $readingSpeed -}}
+{{- if gt (mod $wordCount $readingSpeed) 0 -}}
+  {{- $minutes = add $minutes 1 -}}
+{{- end -}}
+{{- if lt $minutes 1 -}}
+  {{- $minutes = 1 -}}
+{{- end -}}
+{{- $minutes }} min read
