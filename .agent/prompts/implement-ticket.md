@@ -26,14 +26,18 @@ Use the ticket manager skill (`.agent/skills/ticket-github-projects.md`) to:
 sops exec-env .agent/secrets.enc.yaml 'gh issue view $1 --comments'
 ```
 
+Also read ISSUE_NUMBER, ISSUE_TITLE, and ISSUE_BODY from the environment if available (they are pre-populated in CI).
+
 ### Step 2 — Update Ticket to "In Progress" & Assign
 - Assign the ticket to yourself.
 - Add a comment marking it as in-progress.
 
 ```bash
-sops exec-env .agent/secrets.enc.yaml 'gh issue edit $1 --add-assignee "$GITHUB_USERNAME"'
+sops exec-env .agent/secrets.enc.yaml 'gh issue edit $1 --add-assignee "@me"'
 sops exec-env .agent/secrets.enc.yaml 'gh issue comment $1 --body "🚧 **Status: In Progress** — implementation started."'
 ```
+
+In CI, use the bot identity (`github-actions[bot]`); locally, use your username.
 
 ### Step 3 — Create Branch
 - Derive a branch name from the ticket: `feat/$1-{slugified-title}` or `fix/$1-{slugified-title}` depending on ticket type.
@@ -82,6 +86,12 @@ git commit -m "{type}(scope): {description}
 Refs: #$1"
 ```
 
+In CI, configure the git user first:
+```bash
+git config user.name "github-actions[bot]"
+git config user.email "github-actions[bot]@users.noreply.github.com"
+```
+
 ### Step 6 — Push
 
 ```bash
@@ -96,7 +106,7 @@ git push -u origin "${BRANCH_NAME}"
   - **Changes** (key files and modifications)
   - **Testing** (exact commands to verify the feature)
 - Reference the ticket ID.
-- Use the forge skill (`.agent/skills/forge-github.md`) with SOPS wrapping.
+- Use the forge skill (`.agent/skills/forge-github.md`).
 
 ```bash
 sops exec-env .agent/secrets.enc.yaml 'gh pr create \

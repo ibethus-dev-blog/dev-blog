@@ -1,3 +1,4 @@
 {
-	"prompts": ["../.agent/prompts"]
+	"prompts": ["../.agent/prompts"],
+	"skills": ["../.agent/skills"]
 }
