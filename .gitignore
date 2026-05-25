@@ -4,4 +4,3 @@ resources/
 
 # SOPS plaintext secrets — NEVER commit these
 .agent/secrets.yaml
-.agent/secrets.env.yaml
