@@ -13,12 +13,12 @@
  *   ISSUE_NUMBER, ISSUE_TITLE, ISSUE_BODY, GITHUB_TOKEN
  */
 
+import { getModel } from "@earendil-works/pi-ai";
 import {
   AuthStorage,
   createAgentSession,
   ModelRegistry,
   SessionManager,
-  getModel,
 } from "@earendil-works/pi-coding-agent";
 
 const PROVIDER = process.env.PI_PROVIDER;
