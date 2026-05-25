@@ -69,13 +69,86 @@ const { session } = await createAgentSession({
   ...(THINKING && { thinkingLevel: THINKING }),
 });
 
-// ---- Stream output to CI logs ----
+// ---- Debug: log all events to CI output ----
+let turnCount = 0;
+let toolCount = 0;
+
 session.subscribe((event) => {
-  if (
-    event.type === "message_update" &&
-    event.assistantMessageEvent.type === "text_delta"
-  ) {
-    process.stdout.write(event.assistantMessageEvent.delta);
+  switch (event.type) {
+    case "message_start":
+      console.log(`\n📨 message_start (role: ${event.message?.role})`);
+      break;
+
+    case "message_update": {
+      const e = event.assistantMessageEvent;
+      switch (e.type) {
+        case "text_delta":
+          process.stdout.write(e.delta);
+          break;
+        case "thinking_delta":
+          process.stdout.write(e.delta);
+          break;
+        case "toolcall_start":
+          toolCount++;
+          break;
+        case "toolcall_end":
+          console.log(`\n🔧 tool call: ${e.toolCall?.name}(${JSON.stringify(e.toolCall?.arguments).slice(0, 120)})`);
+          break;
+        case "error":
+          console.error(`\n❌ message error: ${e.reason}`);
+          break;
+      }
+      break;
+    }
+
+    case "message_end":
+      console.log(`\n📨 message_end (role: ${event.message?.role})`);
+      break;
+
+    case "tool_execution_start":
+      console.log(`  ▶️ running ${event.toolName}...`);
+      break;
+
+    case "tool_execution_end": {
+      const result = event.result;
+      const preview = result?.content?.[0]?.text?.slice(0, 200) || "";
+      const icon = event.isError ? "❌" : "✅";
+      console.log(`  ${icon} ${event.toolName}: ${preview}${preview.length === 200 ? "…" : ""}`);
+      break;
+    }
+
+    case "turn_start":
+      turnCount++;
+      console.log(`\n--- turn ${turnCount} start ---`);
+      break;
+
+    case "turn_end": {
+      const msgs = event.message?.content || [];
+      const texts = msgs.filter((c) => c.type === "text").length;
+      const tools = msgs.filter((c) => c.type === "toolCall").length;
+      console.log(`--- turn ${turnCount} end (${texts} texts, ${tools} tool calls, stop: ${event.message?.stopReason}) ---\n`);
+      break;
+    }
+
+    case "agent_end":
+      console.log(`\n🏁 agent_end — messages generated: ${event.messages?.length || 0}`);
+      break;
+
+    case "compaction_start":
+      console.log(`🗜️ compaction started (reason: ${event.reason})`);
+      break;
+
+    case "compaction_end":
+      console.log(`🗜️ compaction ended (aborted: ${event.aborted}, willRetry: ${event.willRetry})`);
+      break;
+
+    case "auto_retry_start":
+      console.log(`🔄 retry ${event.attempt}/${event.maxAttempts} in ${event.delayMs}ms: ${event.errorMessage?.slice(0, 120)}`);
+      break;
+
+    case "auto_retry_end":
+      console.log(`🔄 retry end: success=${event.success}, attempt=${event.attempt}${event.finalError ? ", error: " + event.finalError.slice(0, 120) : ""}`);
+      break;
   }
 });
 
@@ -84,7 +157,14 @@ const config = [PROVIDER, model?.id || "default", THINKING || "default"]
   .filter(Boolean)
   .join(", ");
 console.log(`🚀 /implement-ticket ${ISSUE_NUMBER}  (${config})\n`);
-await session.prompt(`/implement-ticket ${ISSUE_NUMBER}`);
-console.log("\n✅ Done");
+try {
+  await session.prompt(`/implement-ticket ${ISSUE_NUMBER}`);
+  console.log("\n✅ Done");
+} catch (err) {
+  console.error(`\n💥 Agent threw: ${err.message}`);
+  if (err.cause) console.error(`   cause: ${err.cause}`);
+  if (err.stack) console.error(err.stack);
+  process.exitCode = 1;
+}
 
 session.dispose();
