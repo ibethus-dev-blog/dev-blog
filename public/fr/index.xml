@@ -1,25 +1,0 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
-  <channel>
-    <title>Home on Hot coffee - devBlog ☕</title>
-    <link>http://localhost:1313/fr/</link>
-    <description>Recent content in Home on Hot coffee - devBlog ☕</description>
-    <generator>Hugo -- 0.125.0</generator>
-    <language>fr-FR</language>
-    <managingEditor>ivan.bethus@gmail.com (Ivan Béthus)</managingEditor>
-    <webMaster>ivan.bethus@gmail.com (Ivan Béthus)</webMaster>
-    <copyright>Ivan Béthus (CC BY 4.0)</copyright>
-    <lastBuildDate>Wed, 17 Apr 2024 22:27:52 +0200</lastBuildDate>
-    <atom:link href="http://localhost:1313/fr/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>CheatSheet</title>
-      <link>http://localhost:1313/fr/blog/cheatsheet/</link>
-      <pubDate>Wed, 17 Apr 2024 22:27:52 +0200</pubDate><author>ivan.bethus@gmail.com (Ivan Béthus)</author>
-      <guid>http://localhost:1313/fr/blog/cheatsheet/</guid>
-      <description>Introduction J&amp;rsquo;ai quand même l&amp;rsquo;impression que c&amp;rsquo;est nettement plus facile d&amp;rsquo;écrire ce blog en markdown !
-Exemple Le code est plus joli ! 1
-1String toto = &amp;#34;toto&amp;#34;; 2System.Out.println(toto); Et je peux faire ça !
-sequenceDiagramparticipant Aliceparticipant BobAlice-&gt;&gt;John: Hello John, how are you?loop HealthcheckJohn-&gt;&gt;John: Fight against hypochondriaendNote right of John: Rational thoughts prevail!John--&gt;&gt;Alice: Great!John-&gt;&gt;Bob: How about you?Bob--&gt;&gt;John: Jolly good!git ---title: Example Git diagram---gitGraphcommitcommitbranch developcheckout developcommitcommitcheckout mainmerge developcommitcommitImage On peut afficher une image aussi : Et voilà la note !</description>
-    </item>
-  </channel>
-</rss>
