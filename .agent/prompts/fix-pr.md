@@ -105,17 +105,18 @@ Triggered by @${COMMENT_AUTHOR} in comment #${COMMENT_ID}.
 
 Refs: #$1"
 # Use the sops-decrypted PAT for push so other CI workflows are triggered
-# Write a temp script (avoids quoting/parsing issues with bash -c inside sops)
+# ⚠️ sops exec-env on this version FAILS if you pass ANY arguments to the command
+# So we pass data via environment variables instead of CLI arguments
+export SOURCE_BRANCH
 cat > /tmp/pi-push.sh << 'PUSHSCRIPT'
 #!/bin/bash
 set -e
-# GITHUB_TOKEN and GITHUB_REPOSITORY are injected by sops exec-env
-# Branch name is passed as argument
-BRANCH="$1"
-git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${BRANCH}"
+# GITHUB_TOKEN, GITHUB_REPOSITORY, SOURCE_BRANCH are all from the environment
+# (GITHUB_TOKEN from sops, GITHUB_REPOSITORY from GHA, SOURCE_BRANCH from export above)
+git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${SOURCE_BRANCH}"
 PUSHSCRIPT
 chmod +x /tmp/pi-push.sh
-sops exec-env .agent/secrets.enc.yaml /tmp/pi-push.sh "${SOURCE_BRANCH}"
+sops exec-env .agent/secrets.enc.yaml /tmp/pi-push.sh
 ```
 
 ### Step 7 — Comment Back on the PR

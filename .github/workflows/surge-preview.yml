@@ -3,7 +3,7 @@ name: Deploy Surge Preview
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened, edited, synchronize]
 
 permissions:
   contents: read
