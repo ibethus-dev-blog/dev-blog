@@ -4,3 +4,6 @@ resources/
 
 # SOPS plaintext secrets — NEVER commit these
 .agent/secrets.yaml
+
+# pi coding agent usage tracking
+.pi-usage.json

@@ -1,3 +1,107 @@
+/* ===== Coffee & Code Color Scheme ===== */
+/* Inspired by "Code, Coffee, Repeat ☕" — warm coffee tones  */
+/* with vibrant coding accents for a hyper fun vibe.          */
+
+/* ---- Light Mode (coffee shop warm) ---- */
+:root {
+  --theme: #FFF8F0;
+  --entry: #FFFDF5;
+  --primary: #3E2723;
+  --secondary: #8D6E63;
+  --tertiary: #EFEBE9;
+  --content: #2C1810;
+  --code-block-bg: #2C1810;
+  --code-bg: #F5EFE6;
+  --border: #E0D5C8;
+  --link-color: #E65100;
+  --link-hover: #BF360C;
+}
+
+/* ---- Dark Mode (espresso roast) ---- */
+.dark {
+  --theme: #1A0F0A;
+  --entry: #2C1810;
+  --primary: #FFF8E1;
+  --secondary: #A1887F;
+  --tertiary: #4E342E;
+  --content: #EFEBE9;
+  --code-block-bg: #0D0705;
+  --code-bg: #2C1810;
+  --border: #4E342E;
+  --link-color: #FF8A65;
+  --link-hover: #FFAB91;
+}
+
+/* ---- Fun link styling ---- */
+a {
+  color: var(--link-color);
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+a:hover,
+a:focus {
+  color: var(--link-hover);
+}
+
+/* ---- Profile mode buttons ---- */
+.button {
+  background: var(--tertiary);
+  border: 1px solid var(--border);
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.button:hover {
+  background: var(--link-color);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(230, 81, 0, 0.3);
+  transform: scale(1.05);
+}
+
+.dark .button:hover {
+  background: var(--link-color);
+  box-shadow: 0 2px 8px rgba(255, 138, 101, 0.3);
+}
+
+/* ---- Logo / header title fun treatment ---- */
+.logo a {
+  background: linear-gradient(135deg, #3E2723 0%, #E65100 50%, #BF360C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dark .logo a {
+  background: linear-gradient(135deg, #FFF8E1 0%, #FF8A65 50%, #FFAB91 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ---- Post entry cards ---- */
+.post-entry {
+  border: 1px solid var(--border);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.post-entry:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(62, 39, 35, 0.1);
+}
+
+.dark .post-entry:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* ---- Code blocks with coffee flavor ---- */
+pre code {
+  border-left: 3px solid #E65100;
+}
+
+.dark pre code {
+  border-left: 3px solid #FF8A65;
+}
+
+/* ---- Keep existing overrides ---- */
 .mermaid {
     background-color: rgb(245, 245, 245) !important;
 }
