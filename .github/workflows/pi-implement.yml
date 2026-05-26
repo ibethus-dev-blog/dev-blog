@@ -24,6 +24,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PROJECT_TOKEN }}  # use PAT so git push triggers other workflows
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -50,7 +52,6 @@ jobs:
           PI_THINKING: ${{ vars.PI_THINKING }}
           PI_API_KEY: ${{ secrets.PI_API_KEY }}
           SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
-          GITHUB_TOKEN: ${{ secrets.PROJECT_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
@@ -59,7 +60,7 @@ jobs:
       - name: Comment on failure
         if: failure()
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
         run: |
           gh issue comment "${{ github.event.issue.number }}" \
             --body "⚠️ Pi implementation failed. [Workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
