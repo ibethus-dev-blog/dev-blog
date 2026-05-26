@@ -163,6 +163,36 @@ pre code {
   animation: fadeInUp 0.6s ease-out 0.45s both;
 }
 
+/* ---- Funny quote section ---- */
+.funny-quote {
+  margin-top: 1.2rem;
+  padding: 0.6rem 1rem;
+  background: var(--code-bg);
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--secondary);
+  border: 1px dashed var(--border);
+  max-width: 480px;
+  line-height: 1.4;
+  animation: fadeInUp 0.6s ease-out 0.6s both;
+}
+
+.funny-quote .quote-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.funny-quote .quote-text {
+  font-style: italic;
+}
+
+.dark .funny-quote {
+  border-color: var(--tertiary);
+}
+
 /* ---- Keep existing overrides ---- */
 .mermaid {
     background-color: rgb(245, 245, 245) !important;

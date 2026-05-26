@@ -33,6 +33,25 @@
         <h1>{{ .title | default site.Title | markdownify }}</h1>
         <span>{{ site.Language.Params.subtitle }}</span>
         {{- partial "social_icons.html" -}}
+        {{- if site.Params.funny.enabled }}
+        <div class="funny-quote" id="funny-quote">
+            <span class="quote-icon">☕</span>
+            <span class="quote-text">{{ site.Params.funny.quotes | index 0 }}</span>
+        </div>
+        <script>
+            (function() {
+                var quotes = {{ site.Params.funny.quotes | jsonify }};
+                var el = document.getElementById('funny-quote');
+                if (el) {
+                    var textEl = el.querySelector('.quote-text');
+                    if (textEl) {
+                        var idx = Math.floor(Math.random() * quotes.length);
+                        textEl.textContent = quotes[idx];
+                    }
+                }
+            })();
+        </script>
+        {{- end }}
 
         {{- with site.Language.Params.buttons }}
         <div class="buttons">
