@@ -87,25 +87,21 @@ For an overall review decision:
 - **Request Changes** if there are blocking issues.
 - **Comment only** if you only have suggestions.
 
-Before posting, read the token usage from `.pi-usage.json` and append it to the review body.
+
+Before posting, read the pre-formatted usage footer from `.pi-usage-footer.txt` and append it to the review body.
 
 ```bash
-# Read usage stats
-USAGE=$(cat .pi-usage.json 2>/dev/null || echo "{}")
-USAGE_MODEL=$(echo "$USAGE" | jq -r '.model // "unknown"')
-USAGE_TOKENS=$(echo "$USAGE" | jq -r '"\(.inputTokens // 0) in / \(.outputTokens // 0) out"')
-USAGE_COST=$(echo "$USAGE" | jq -r '"$\(.cost // 0)"')
+# Build the review body in a temp file
+cat > /tmp/pi-review.md << 'BODY'
+REVIEW_CONTENT
 
-# Build review body with usage footer
-REVIEW_BODY="REVIEW_CONTENT
+BODY
 
----
-*🤖 Reviewed by pi — ${USAGE_MODEL}  |  ${USAGE_TOKENS}  |  ${USAGE_COST}*"
+# Append the pre-formatted usage footer
+cat .pi-usage-footer.txt >> /tmp/pi-review.md
 
-# GitHub: submit a review
-sops exec-env .agent/secrets.enc.yaml 'gh pr review $1 \
-  --body "${REVIEW_BODY}" \
-  --COMMENT|--APPROVE|--REQUEST-CHANGES'
+# Submit the review
+sops exec-env .agent/secrets.enc.yaml gh pr review "$1" --body-file /tmp/pi-review.md --COMMENT|--APPROVE|--REQUEST-CHANGES
 ```
 
 ### Step 7 — Post Review Summary on the Ticket
@@ -114,14 +110,12 @@ Use the ticket manager skill to add a comment to the associated ticket with:
 - A summary of the review (overall verdict: approved / changes requested / commented).
 - Number of blocking issues, suggestions, and positive highlights.
 - Next steps (e.g., "Please address the 2 blocking issues above, then re-request review").
-- Token usage summary (model, input/output tokens, cost) — re-read `.pi-usage.json` for updated stats.
+- Token usage summary — read the pre-formatted footer from `.pi-usage-footer.txt`.
 
 ```bash
-USAGE=$(cat .pi-usage.json 2>/dev/null || echo "{}")
-USAGE_MODEL=$(echo "$USAGE" | jq -r '.model // "unknown"')
-USAGE_TOKENS=$(echo "$USAGE" | jq -r '"\(.inputTokens // 0) in / \(.outputTokens // 0) out"')
-USAGE_COST=$(echo "$USAGE" | jq -r '"$\(.cost // 0)"')
-sops exec-env .agent/secrets.enc.yaml 'gh issue comment TICKET_ID --body "## Code Review Summary
+# Write the ticket summary to a temp file
+cat > /tmp/pi-ticket-comment.md << 'BODY'
+## Code Review Summary
 
 **PR:** LINK_TO_PR
 **Verdict:** APPROVED|CHANGES_REQUESTED|COMMENT_ONLY
@@ -140,10 +134,14 @@ sops exec-env .agent/secrets.enc.yaml 'gh issue comment TICKET_ID --body "## Cod
 
 **Next steps:** Please address the blocking issues and re-request review.
 
----
-*🤖 Reviewed by pi — ${USAGE_MODEL}  |  ${USAGE_TOKENS}  |  ${USAGE_COST}*"'
-```
+BODY
 
+# Append the pre-formatted usage footer
+cat .pi-usage-footer.txt >> /tmp/pi-ticket-comment.md
+
+# Post the comment
+sops exec-env .agent/secrets.enc.yaml gh issue comment TICKET_ID --body-file /tmp/pi-ticket-comment.md
+```
 ### Step 8 — Cleanup
 - Return to the base branch and delete the review branch.
 
