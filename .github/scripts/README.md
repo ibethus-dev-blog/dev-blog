@@ -1,6 +1,35 @@
-# Pi `/implement` Pipeline
+# Pi AI Agent Pipelines
 
-Comment `/implement` on a GitHub issue and a pipeline spins up that runs the pi coding agent to implement the ticket — it reads the codebase, makes changes, pushes a branch, and opens a PR.
+A single consolidated workflow (`.github/workflows/pi.yml`) handles all AI agent commands via GitHub issue/PR comments.
+
+## Commands
+
+### `/implement` — Implement from issue
+
+Comment `/implement` on any open **issue**. The bot will:
+
+1. Assign the ticket and mark it in-progress
+2. Create a branch `feat/<number>-<slug>`
+3. Implement the feature
+4. Push and open a PR
+5. Comment on the issue with the PR link
+
+### `/fix` — Fix from PR comment
+
+Comment `/fix [optional instruction]` on a **pull request**. The bot will:
+
+1. Read the PR diff and context
+2. Apply the requested fix or follow the optional instruction
+3. Push changes directly to the PR branch
+4. Comment on the PR with a summary
+
+### `/review` — Review a PR
+
+Comment `/review [optional focus area]` on a **pull request**. The bot will:
+
+1. Read the PR diff and context
+2. Perform a code review (optionally focused on a specific area)
+3. Comment on the PR with the review findings
 
 ## Setup
 
@@ -33,22 +62,18 @@ sops exec-env .agent/secrets.enc.yaml 'gh auth status'
 ### 3. Push the workflow
 
 ```bash
-git add .github/workflows/pi-implement.yml .github/scripts/pi-implement.mjs
-git commit -m "ci: add pi /implement pipeline"
+git add .github/workflows/pi.yml .github/scripts/pi-*.mjs
+git commit -m "ci: add consolidated pi AI agent pipeline"
 git push
 ```
 
-## Usage
+## Scripts
 
-Comment `/implement` on any open issue. The bot will:
-
-1. Assign the ticket and mark it in-progress
-2. Create a branch `feat/<number>-<slug>`
-3. Implement the feature
-4. Push and open a PR
-5. Comment on the issue with the PR link
-
-If something fails, the workflow comments on the issue with a link to the failed run.
+| Script | Command | Trigger | Prompt |
+|--------|---------|---------|--------|
+| `pi-implement.mjs` | `/implement` | Issue comment | `/implement-ticket <number>` |
+| `pi-fix.mjs` | `/fix [instruction]` | PR comment | `/fix-pr <number> [instruction]` |
+| `pi-review-pr.mjs` | `/review [focus]` | PR comment | `/review-mr-pr <number> [focus]` |
 
 ## Surge.sh Preview Deploys
 

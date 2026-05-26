@@ -1,0 +1,136 @@
+name: Pi
+
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: pi-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  agent:
+    if: |
+      github.event.comment.body &&
+      (
+        startsWith(github.event.comment.body, '/review') ||
+        startsWith(github.event.comment.body, '/fix') ||
+        startsWith(github.event.comment.body, '/implement')
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # fetch all history so the prompt can work with branches
+          token: ${{ secrets.PROJECT_TOKEN }}  # use PAT so git push triggers other workflows
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install project dependencies
+        run: npm ci || true
+
+      - name: Install pi coding agent
+        run: npm install --no-save @earendil-works/pi-coding-agent
+
+      - name: Install SOPS
+        run: |
+          curl -sLO https://github.com/getsops/sops/releases/download/v3.12.1/sops-v3.12.1.linux.amd64
+          chmod +x sops-v3.12.1.linux.amd64
+          sudo mv sops-v3.12.1.linux.amd64 /usr/local/bin/sops
+          sops --version
+
+      - name: Fetch PR branch details
+        if: |
+          github.event.issue.pull_request &&
+          (
+            startsWith(github.event.comment.body, '/review') ||
+            startsWith(github.event.comment.body, '/fix')
+          )
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          PR_JSON=$(gh pr view "${{ github.event.issue.number }}" --json headRefName,baseRefName 2>/dev/null || echo "")
+          if [ -n "$PR_JSON" ]; then
+            echo "PR_SOURCE_BRANCH=$(echo "$PR_JSON" | jq -r '.headRefName')" >> $GITHUB_ENV
+            echo "PR_TARGET_BRANCH=$(echo "$PR_JSON" | jq -r '.baseRefName')" >> $GITHUB_ENV
+          fi
+
+      - name: Run pi review
+        if: |
+          startsWith(github.event.comment.body, '/review') &&
+          github.event.issue.pull_request
+        env:
+          PI_PROVIDER: ${{ vars.PI_PROVIDER }}
+          PI_MODEL: ${{ vars.PI_MODEL }}
+          PI_THINKING: ${{ vars.PI_THINKING }}
+          PI_API_KEY: ${{ secrets.PI_API_KEY }}
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          PR_TITLE: ${{ github.event.issue.title }}
+          PR_BODY: ${{ github.event.issue.body }}
+          PR_AUTHOR: ${{ github.event.issue.user.login }}
+          PR_LABELS: ${{ toJSON(github.event.issue.labels.*.name) }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: node .github/scripts/pi-review-pr.mjs
+
+      - name: Run pi fix
+        if: |
+          startsWith(github.event.comment.body, '/fix') &&
+          github.event.issue.pull_request
+        env:
+          PI_PROVIDER: ${{ vars.PI_PROVIDER }}
+          PI_MODEL: ${{ vars.PI_MODEL }}
+          PI_THINKING: ${{ vars.PI_THINKING }}
+          PI_API_KEY: ${{ secrets.PI_API_KEY }}
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          PR_TITLE: ${{ github.event.issue.title }}
+          PR_BODY: ${{ github.event.issue.body }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: node .github/scripts/pi-fix.mjs
+
+      - name: Run pi implement
+        if: startsWith(github.event.comment.body, '/implement')
+        env:
+          PI_PROVIDER: ${{ vars.PI_PROVIDER }}
+          PI_MODEL: ${{ vars.PI_MODEL }}
+          PI_THINKING: ${{ vars.PI_THINKING }}
+          PI_API_KEY: ${{ secrets.PI_API_KEY }}
+          SOPS_AGE_KEY: ${{ secrets.SOPS_AGE_KEY }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: node .github/scripts/pi-implement.mjs
+
+      - name: Comment on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          KEYWORD=$(echo "${COMMENT_BODY}" | grep -oP '^/\w+' | head -1 || echo "")
+          if [ "${KEYWORD}" = "/implement" ]; then
+            gh issue comment "${ISSUE_NUMBER}" \
+              --body "⚠️ Pi implementation failed. [Workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          else
+            LABEL="${KEYWORD#/}"
+            gh pr comment "${PR_NUMBER}" \
+              --body "⚠️ Pi ${LABEL} failed. [Workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          fi

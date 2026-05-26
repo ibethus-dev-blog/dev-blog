@@ -65,6 +65,14 @@ git checkout -b "${BRANCH_NAME}"
   - Run the type checker if applicable (TypeScript, mypy, etc.).
   - Ensure all existing tests still pass.
   - Follow existing code patterns and architecture.
+- **Verify the build passes** before committing any changes:
+
+```bash
+# Run Hugo build — this MUST succeed before committing
+hugo --minify 2>&1
+```
+
+If `hugo --minify` fails, fix the build error before proceeding. Never commit code that breaks the build.
 
 ### Step 5 — Commit with Conventional Commits
 - Stage all changes.
@@ -172,3 +180,4 @@ Output a summary of everything that was done:
 - If any step fails, stop and report the error with context before proceeding.
 - Do not modify files outside the worktree.
 - Respect existing `.gitignore`, linter configs, and project conventions.
+- **Build verification:** Run `hugo --minify` before committing any changes. Never commit code that breaks the build.

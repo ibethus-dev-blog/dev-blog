@@ -86,15 +86,18 @@ For each P0 and P1 issue:
 - Apply the minimal, correct fix.
 - If the CI tool provides remediation guidance, follow it.
 - Do **not** refactor or change unrelated code.
-- After each fix, run the relevant check locally to confirm resolution:
+- After each fix, run the relevant check locally to confirm resolution.
+- **Verify the build passes** before moving on to the next fix:
 
 ```bash
 # Lint the fixed file
 npx eslint --fix path/to/file.ts
 
-# Run Hugo build to verify
-hugo --minify
+# Run Hugo build — this MUST succeed before committing
+hugo --minify 2>&1
 ```
+
+If `hugo --minify` fails, fix the build error before proceeding. Never commit code that breaks the build.
 
 ### Step 6 — Commit the Fixes
 Use a conventional commit message that references both the ticket and the CI tool:
@@ -205,3 +208,4 @@ Output a summary of everything done:
 - Minimal fixes only — no opportunistic refactoring.
 - If unsure about any fix (e.g., ambiguous business logic), add it as a P2 note instead of changing code.
 - If the CI report is empty or unreadable, stop and ask for a valid report.
+- **Build verification:** Run `hugo --minify` before committing any changes. Never commit code that breaks the build.

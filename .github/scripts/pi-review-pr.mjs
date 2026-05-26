@@ -1,6 +1,8 @@
 /**
  * Pi PR review bridge for GitHub Actions.
  *
+ * Triggered by a "/review" comment on a pull request.
+ *
  * Required env vars:
  *   PI_PROVIDER        LLM provider (e.g. anthropic, openai, groq)
  *   PI_API_KEY         API key for the provider
@@ -11,7 +13,8 @@
  *
  * CI-injected:
  *   PR_NUMBER, PR_TITLE, PR_BODY, PR_SOURCE_BRANCH, PR_TARGET_BRANCH,
- *   PR_AUTHOR, PR_LABELS, GITHUB_TOKEN
+ *   PR_AUTHOR, PR_LABELS, COMMENT_BODY, COMMENT_AUTHOR, COMMENT_ID,
+ *   GITHUB_TOKEN
  */
 
 import fs from "fs";
@@ -31,6 +34,7 @@ const API_KEY = process.env.PI_API_KEY;
 const MODEL_ID = process.env.PI_MODEL;
 const THINKING = process.env.PI_THINKING;
 const PR_NUMBER = process.env.PR_NUMBER;
+const COMMENT_BODY = process.env.COMMENT_BODY || "";
 
 // ---- Suppress internal pi SDK AbortSignal listener warning ----
 process.on("warning", (w) => {
@@ -241,11 +245,18 @@ session.subscribe((event) => {
   }
 });
 
+// ---- Get the review instruction from the comment ----
+// Remove the "/review" prefix and trim whitespace to get the actual instruction
+const reviewInstruction = COMMENT_BODY.replace(/^\/review\s*/i, "").trim();
+const promptArg = reviewInstruction
+  ? `${PR_NUMBER} ${reviewInstruction}`
+  : PR_NUMBER;
+
 // ---- Run the prompt template ----
 const config = [PROVIDER, model?.id || "default", THINKING || "default"]
   .filter(Boolean)
   .join(", ");
-console.log(`🚀 /review-mr-pr ${PR_NUMBER}  (${config})\n`);
+console.log(`🚀 /review-mr-pr ${promptArg}  (${config})\n`);
 
 // Race the prompt against a timeout (prevents hanging if API errors are swallowed)
 const PROMPT_TIMEOUT_MS = 25 * 60 * 1000; // 25 min (workflow timeout is 30)
@@ -257,7 +268,7 @@ const timeout = setTimeout(() => {
 }, PROMPT_TIMEOUT_MS);
 
 try {
-  await session.prompt(`/review-mr-pr ${PR_NUMBER}`);
+  await session.prompt(`/review-mr-pr ${promptArg}`);
   clearTimeout(timeout);
   console.log("\n✅ prompt() resolved");
 } catch (err) {

@@ -75,11 +75,11 @@ git checkout -b "fix-${SOURCE_BRANCH}" "origin/${SOURCE_BRANCH}"
 - Read the relevant files to understand the context.
 - Apply the **minimal fix** needed — do not refactor or change unrelated code.
 - If the fix involves code changes, write or update tests to cover the fix.
-- Ensure the project still builds and passes linting:
+- **Verify the build passes** before committing any changes:
 
 ```bash
-# Run Hugo build to verify
-hugo --minify 2>&1 || echo "Build check done"
+# Run Hugo build — this MUST succeed before committing
+hugo --minify 2>&1
 
 # Run linter
 npm run lint 2>&1 || echo "No lint script"
@@ -87,6 +87,8 @@ npm run lint 2>&1 || echo "No lint script"
 # Run tests
 npm test 2>&1 || echo "No test script"
 ```
+
+If `hugo --minify` fails, fix the build error before proceeding. Never commit code that breaks the build.
 
 ### Step 6 — Commit and Push
 - Configure git identity.
@@ -174,3 +176,4 @@ Output a summary of everything done:
 - If the fix request is unclear or ambiguous, ask for clarification on the PR instead of making assumptions.
 - If no files were changed (e.g., the request was unclear), still comment on the PR explaining why.
 - Do not modify files outside the PR branch's worktree.
+- **Build verification:** Run `hugo --minify` before committing any changes. Never commit code that breaks the build.

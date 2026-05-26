@@ -47,7 +47,17 @@ git fetch origin "${BRANCH_NAME}"
 git checkout -b "review-${BRANCH_NAME}" "origin/${BRANCH_NAME}"
 ```
 
-### Step 4 — Perform Code Review
+### Step 4 — Verify the Build Succeeds
+Before writing the review, verify that the PR branch builds successfully.
+
+```bash
+# Run Hugo build — this MUST succeed before proceeding
+hugo --minify 2>&1
+```
+
+If `hugo --minify` fails, note the build error as a **blocking issue** in your review. Do not skip or ignore build failures.
+
+### Step 5 — Perform Code Review
 Review every changed file with a critical eye. Check for:
 
 1. **Correctness** — Does the code implement what the ticket requires? Are edge cases handled?
@@ -61,25 +71,22 @@ Review every changed file with a critical eye. Check for:
 
 Run static analysis if available:
 ```bash
-# Run Hugo build to verify
-hugo --minify 2>&1 || echo "Build check done"
-
 # Run the project's linter
 npm run lint 2>&1 || echo "No lint script"
 ```
 
-### Step 5 — Write the Review
+### Step 6 — Write the Review
 Structure the review into three sections:
 
 **✅ What looks good** — Highlight well-written code, good tests, smart choices.
 
 **⚠️ Suggestions** — Non-blocking improvements, alternative approaches, style nits.
 
-**🔴 Blocking issues** — Bugs, security problems, missing tests, architectural concerns that must be addressed before merging.
+**🔴 Blocking issues** — Bugs, security problems, missing tests, **build failures**, architectural concerns that must be addressed before merging.
 
 For each issue found, reference the specific file and line number.
 
-### Step 6 — Post Review on the PR
+### Step 7 — Post Review on the PR
 Use the forge skill to submit the review on the PR.
 
 For an overall review decision:
@@ -104,7 +111,7 @@ cat .pi-usage-footer.txt >> /tmp/pi-review.md
 sops exec-env .agent/secrets.enc.yaml gh pr review "$1" --body-file /tmp/pi-review.md --COMMENT|--APPROVE|--REQUEST-CHANGES
 ```
 
-### Step 7 — Post Review Summary on the Ticket
+### Step 8 — Post Review Summary on the Ticket
 Use the ticket manager skill to add a comment to the associated ticket with:
 - A link to the PR.
 - A summary of the review (overall verdict: approved / changes requested / commented).
@@ -142,7 +149,7 @@ cat .pi-usage-footer.txt >> /tmp/pi-ticket-comment.md
 # Post the comment
 sops exec-env .agent/secrets.enc.yaml gh issue comment TICKET_ID --body-file /tmp/pi-ticket-comment.md
 ```
-### Step 8 — Cleanup
+### Step 9 — Cleanup
 - Return to the base branch and delete the review branch.
 
 ```bash
@@ -151,7 +158,7 @@ git checkout "${BASE_BRANCH}"
 git branch -D "review-${BRANCH_NAME}"
 ```
 
-### Step 9 — Summary
+### Step 10 — Summary
 Output a summary of the review:
 - PR ID and link
 - Associated ticket ID and link
@@ -167,3 +174,4 @@ Output a summary of the review:
 - Do not modify files outside the review worktree.
 - Be constructive and respectful in all review comments.
 - If no ticket is referenced, skip steps 2 and 7 (only post to the PR).
+- **Build verification:** Run `hugo --minify` before submitting the review. If the build fails, log it as a blocking issue.
