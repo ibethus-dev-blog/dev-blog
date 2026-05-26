@@ -34,20 +34,33 @@
         <span>{{ site.Language.Params.subtitle }}</span>
         {{- partial "social_icons.html" -}}
         {{- if site.Params.funny.enabled }}
-        <div class="funny-quote" id="funny-quote">
+        <div class="funny-quote" id="funny-quote" title="Cliquez pour une autre blague / Click for another joke!">
             <span class="quote-icon">☕</span>
-            <span class="quote-text">{{ site.Params.funny.quotes | index 0 }}</span>
+            <span class="quote-text" id="funny-quote-text">{{ site.Params.funny.quotes | index 0 }}</span>
+            <span class="quote-refresh">↻</span>
         </div>
         <script>
             (function() {
                 var quotes = {{ site.Params.funny.quotes | jsonify }};
-                var el = document.getElementById('funny-quote');
-                if (el) {
-                    var textEl = el.querySelector('.quote-text');
-                    if (textEl) {
-                        var idx = Math.floor(Math.random() * quotes.length);
+                var container = document.getElementById('funny-quote');
+                var textEl = document.getElementById('funny-quote-text');
+                if (container && textEl && quotes.length) {
+                    // Set initial random quote
+                    var idx = Math.floor(Math.random() * quotes.length);
+                    textEl.textContent = quotes[idx];
+                    // Click to refresh with a fun bounce
+                    container.addEventListener('click', function(e) {
+                        var newIdx;
+                        do {
+                            newIdx = Math.floor(Math.random() * quotes.length);
+                        } while (quotes.length > 1 && newIdx === idx);
+                        idx = newIdx;
                         textEl.textContent = quotes[idx];
-                    }
+                        // Bounce animation
+                        container.classList.remove('funny-bounce');
+                        void container.offsetWidth; // reflow
+                        container.classList.add('funny-bounce');
+                    });
                 }
             })();
         </script>
