@@ -91,6 +91,7 @@ npm test 2>&1 || echo "No test script"
 ### Step 6 — Commit and Push
 - Configure git identity.
 - Commit with a conventional commit message referencing the PR and the comment.
+- **Important:** Push using the PAT from the secrets file (`sops exec-env`) so that the push triggers other CI workflows. Do NOT use a plain `git push origin` — it would use the auto-generated GITHUB_TOKEN which doesn't trigger workflows.
 
 ```bash
 git config user.name "github-actions[bot]"
@@ -103,7 +104,8 @@ Request: $2
 Triggered by @${COMMENT_AUTHOR} in comment #${COMMENT_ID}.
 
 Refs: #$1"
-git push origin "HEAD:${SOURCE_BRANCH}"
+# Use the sops-decrypted PAT for push so other CI workflows are triggered
+sops exec-env .agent/secrets.enc.yaml bash -c 'git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${SOURCE_BRANCH}"'
 ```
 
 ### Step 7 — Comment Back on the PR

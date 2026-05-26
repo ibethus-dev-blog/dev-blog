@@ -93,9 +93,11 @@ git config user.email "github-actions[bot]@users.noreply.github.com"
 ```
 
 ### Step 6 — Push
+- **Important:** Push using the PAT from the secrets file (`sops exec-env`) so that the push triggers other CI workflows. Do NOT use a plain `git push origin` — it would use the auto-generated GITHUB_TOKEN which doesn't trigger workflows.
 
 ```bash
-git push -u origin "${BRANCH_NAME}"
+# Use the sops-decrypted PAT for push so other CI workflows are triggered
+sops exec-env .agent/secrets.enc.yaml bash -c 'git push -u "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "${BRANCH_NAME}"'
 ```
 
 ### Step 7 — Create Pull Request
