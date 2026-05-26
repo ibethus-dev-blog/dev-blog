@@ -24,12 +24,12 @@ Contrairement à un assistant de chat qui vous donne des instructions à suivre,
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│                     Pi Agent (pipi.ai)                           │
+│                     Pi Agent (pi.dev)                            │
 │                                                                  │
 │  ┌────────────┐  ┌──────────────┐  ┌──────────────────────────┐ │
 │  │   Outils   │  │  Compétences │  │  Backend LLM (API)       │ │
 │  │  ────────  │  │  ──────────  │  │  ────────────────────    │ │
-│  │  • read    │  │  • forge     │  │  • deepseek (défaut)    │ │
+│  │  • read    │  │  • forge     │  │  • openai, anthropic...  │ │
 │  │  • write   │  │  • secrets   │  │  • claude, gpt...        │ │
 │  │  • edit    │  │  • tickets   │  │  • fournisseurs persos   │ │
 │  │  • bash    │  │  • perso...  │  │                          │ │
@@ -45,11 +45,11 @@ Contrairement à un assistant de chat qui vous donne des instructions à suivre,
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-Au cœur de Pi se trouve un Grand Modèle de Langage (LLM) — par défaut **DeepSeek**, mais interchangeable avec Claude, GPT ou tout fournisseur compatible OpenAI — qui a été adapté pour opérer dans une **boucle d'agent** structurée. Cela signifie qu'il peut planifier, exécuter, observer les résultats et itérer jusqu'à ce que la tâche soit terminée.
+Au cœur de Pi se trouve un Grand Modèle de Langage (LLM) — configurable pour utiliser n'importe quel **fournisseur compatible OpenAI**, comme Claude, GPT ou des modèles locaux — qui a été adapté pour opérer dans une **boucle d'agent** structurée. Pi n'est livré avec aucun LLM par défaut ; vous configurez le fournisseur et le modèle de votre choix. Cela signifie qu'il peut planifier, exécuter, observer les résultats et itérer jusqu'à ce que la tâche soit terminée.
 
 ## L'Architecture des Compétences (Skills)
 
-La véritable puissance de Pi vient de son **système de compétences**. Les compétences sont des fichiers Markdown qui définissent des workflows reproductibles. Voici ce que j'ai configuré pour ce blog :
+Les compétences (skills) sont des fichiers Markdown qui définissent des workflows reproductibles — et elles ne sont pas propres à Pi. Chaque agent de code utilise des compétences pour comprendre comment opérer dans un projet. Cependant, la véritable force de Pi réside dans son **système d'extensions** : vous pouvez écrire et partager des extensions personnalisées en utilisant le SDK Pi, étendant ainsi l'agent avec de nouveaux outils et capacités au-delà de l'ensemble intégré. Voici ce que j'ai configuré pour ce blog :
 
 ### 1. Compétence Forge (`forge-github.md`)
 
@@ -175,6 +175,35 @@ Une fois que tout est vérifié :
 4. **Mise à jour du ticket** avec le lien de la PR et les instructions de test
 5. **Nettoyage** en retournant à la branche de base
 
+### Phase 7 : Déploiement de Prévisualisation via Surge
+
+Une fois la PR ouverte, un workflow GitHub Actions (`.github/workflows/surge-preview.yml`) déploie automatiquement une prévisualisation en direct du site sur **Surge.sh** :
+
+```yaml
+# .github/workflows/surge-preview.yml
+name: Deploy Surge Preview
+on:
+  pull_request:
+    types: [opened, reopened, edited, synchronize]
+
+jobs:
+  build-and-deploy:
+    steps:
+      - name: Build with Hugo
+        run: hugo --gc --minify --baseURL "https://test.hot-coffee.dev/"
+      - name: Publish to surge.sh
+        uses: dswistowski/surge-sh-action@v1
+        with:
+          domain: 'test.hot-coffee.dev'
+          project: 'public'
+          login: \${{ secrets.SURGE_LOGIN }}
+          token: \${{ secrets.SURGE_TOKEN }}
+      - name: Comment deployment URL on PR
+        run: gh pr comment "${{ github.event.pull_request.number }}" --body "🚀 Preview deployed to https://test.hot-coffee.dev"
+```
+
+Ce workflow se déclenche à chaque mise à jour de la PR, compile le site et le déploie sur un domaine de staging. Un commentaire automatique sur la PR fournit l'URL de prévisualisation en direct — parfait pour que les relecteurs voient les changements sans exécuter le site localement.
+
 ## Exemple Concret : Cet Article Lui-Même
 
 L'article que vous lisez en ce moment a été créé en utilisant ce workflow. Voici ce qui s'est passé en coulisses :
@@ -268,7 +297,11 @@ sops --encrypt secrets.yaml > .agent/secrets.enc.yaml
 
 ### 4. Configurer les Outils
 
-Les outils de Pi sont intégrés, mais vous pouvez les étendre avec le SDK d'outils personnalisés. L'ensemble intégré — `read`, `write`, `edit`, `bash`, `grep`, `find`, `ls` — couvre la plupart des besoins d'un projet.
+Les outils de Pi sont intégrés, mais vous pouvez les étendre avec des outils personnalisés via le **SDK Pi**. L'ensemble intégré — `read`, `write`, `edit`, `bash`, `grep`, `find`, `ls` — couvre la plupart des besoins d'un projet, mais le SDK vous permet d'écrire et de partager des extensions personnalisées pour des tâches spécifiques au projet.
+
+### 5. Découvrir et Installer des Extensions
+
+L'un des plus grands atouts de Pi est son **écosystème d'extensions**. Vous pouvez parcourir et installer des extensions contribuées par la communauté, ou écrire les vôtres et les partager. Les extensions peuvent ajouter de nouveaux outils, des fournisseurs personnalisés, des thèmes pour le TUI, et bien plus encore — rendant Pi adaptable à n'importe quel workflow.
 
 ### 5. Lancer Votre Premier Ticket
 
@@ -296,7 +329,7 @@ Après avoir utilisé Pi pendant plusieurs mois sur ce blog, voici ce que j'ai c
 ### Améliorations Futures
 
 J'attends avec impatience :
-- **Développement d'outils personnalisés** : Écrire des extensions Pi avec le SDK pour des tâches spécifiques au blog (ex : génération de cartes sociales)
+- **Extensions personnalisées** : Écrire des extensions Pi avec le SDK pour des tâches spécifiques au blog (ex : génération de cartes sociales) et les partager avec la communauté
 - **Workflows multi-agents** : Des agents Pi gérant différentes parties du pipeline simultanément
 - **Meilleure compréhension du projet** : Pi apprenant des revues de PR passées et adaptant son style de code
 
@@ -304,7 +337,7 @@ J'attends avec impatience :
 
 L'agent de code Pi a transformé la façon dont je maintiens ce blog. Ce qui me prenait une heure de configuration, de branchement et de travail de processus pour chaque article se produit maintenant en quelques secondes. Plus important encore, la **cohérence** et la **fiabilité** du workflow automatisé signifient que je consacre mon énergie à ce qui compte : écrire du contenu qui aide les autres développeurs.
 
-La combinaison d'une **architecture pilotée par les compétences**, d'une **sécurité renforcée par SOPS** et d'une **exécution autonome par agent** crée un environnement de développement où les idées passent de la conception au déploiement avec un minimum de friction.
+La combinaison d'une **architecture pilotée par les compétences**, d'**outils extensibles via le SDK**, d'une **sécurité renforcée par SOPS** et d'une **exécution autonome par agent** crée un environnement de développement où les idées passent de la conception au déploiement avec un minimum de friction.
 
 Si vous maintenez un blog technique, un projet open-source ou tout projet logiciel avec un workflow défini, je vous recommande vivement d'essayer Pi. Configurez vos compétences, chiffrez vos secrets et laissez l'agent gérer le processus pendant que vous vous concentrez sur le produit.
 

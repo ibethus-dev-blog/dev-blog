@@ -24,12 +24,12 @@ Unlike a chat assistant that gives you instructions to follow, Pi **does the wor
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│                       Pi Agent (pipi.ai)                         │
+│                       Pi Agent (pi.dev)                          │
 │                                                                  │
 │  ┌────────────┐  ┌──────────────┐  ┌──────────────────────────┐ │
 │  │   Tools    │  │   Skills     │  │  LLM Backend (API)       │ │
 │  │  ────────  │  │  ──────────  │  │  ────────────────────    │ │
-│  │  • read    │  │  • forge     │  │  • deepseek (default)    │ │
+│  │  • read    │  │  • forge     │  │  • openai, anthropic...  │ │
 │  │  • write   │  │  • secrets   │  │  • claude, gpt...        │ │
 │  │  • edit    │  │  • tickets   │  │  • custom providers      │ │
 │  │  • bash    │  │  • custom... │  │                          │ │
@@ -45,11 +45,11 @@ Unlike a chat assistant that gives you instructions to follow, Pi **does the wor
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-At its core, Pi uses a Large Language Model (LLM) — by default **DeepSeek**, but swappable to Claude, GPT, or any OpenAI-compatible provider — that has been fine-tuned to operate within a structured **agent loop**. This means it can plan, execute, observe results, and iterate until the task is complete.
+At its core, Pi uses a Large Language Model (LLM) — configurable to use any **OpenAI-compatible provider**, such as Claude, GPT, or local models — that has been fine-tuned to operate within a structured **agent loop**. Pi ships with no default LLM; you configure the provider and model of your choice. This means it can plan, execute, observe results, and iterate until the task is complete.
 
 ## The Skills Architecture
 
-The real power of Pi comes from its **skills system**. Skills are Markdown files that define repeatable workflows. Here's what I've set up for this blog:
+Skills are Markdown files that define repeatable workflows — and they're not unique to Pi. Every coding agent uses skills to understand how to operate in a project. However, Pi's real strength lies in its **extensions system**: you can write and share custom extensions using the Pi SDK, extending the agent with new tools and capabilities beyond the built-in set. Here's what I've set up for this blog:
 
 ### 1. Forge Skill (`forge-github.md`)
 
@@ -175,6 +175,35 @@ Once everything is verified:
 4. **Update the ticket** with the PR link and testing instructions
 5. **Clean up** by returning to the base branch
 
+### Phase 7: Preview Deployment via Surge
+
+Once the PR is open, a GitHub Actions workflow (`.github/workflows/surge-preview.yml`) automatically deploys a live preview of the site to **Surge.sh**:
+
+```yaml
+# .github/workflows/surge-preview.yml
+name: Deploy Surge Preview
+on:
+  pull_request:
+    types: [opened, reopened, edited, synchronize]
+
+jobs:
+  build-and-deploy:
+    steps:
+      - name: Build with Hugo
+        run: hugo --gc --minify --baseURL "https://test.hot-coffee.dev/"
+      - name: Publish to surge.sh
+        uses: dswistowski/surge-sh-action@v1
+        with:
+          domain: 'test.hot-coffee.dev'
+          project: 'public'
+          login: \${{ secrets.SURGE_LOGIN }}
+          token: \${{ secrets.SURGE_TOKEN }}
+      - name: Comment deployment URL on PR
+        run: gh pr comment "${{ github.event.pull_request.number }}" --body "🚀 Preview deployed to https://test.hot-coffee.dev"
+```
+
+This workflow triggers on every PR update, building the site and deploying it to a staging domain. A bot comment on the PR provides the live preview URL — perfect for reviewers to see changes without running the site locally.
+
 ## Real-World Example: This Very Article
 
 The article you're reading right now was created using this workflow. Here's what happened behind the scenes:
@@ -268,7 +297,11 @@ sops --encrypt secrets.yaml > .agent/secrets.enc.yaml
 
 ### 4. Configure the Tools
 
-Pi's tools are built-in, but you can extend them with custom tools SDK. The built-in set — `read`, `write`, `edit`, `bash`, `grep`, `find`, `ls` — covers most project needs.
+Pi's tools are built-in, but you can extend them with custom tools via the **Pi SDK**. The built-in set — `read`, `write`, `edit`, `bash`, `grep`, `find`, `ls` — covers most project needs, but the SDK lets you write and share custom extensions for project-specific tasks.
+
+### 5. Discover and Install Extensions
+
+One of Pi's greatest strengths is its **extensions ecosystem**. You can browse and install community-contributed extensions, or write your own and share them. Extensions can add new tools, custom providers, themes for the TUI, and more — making Pi adaptable to any workflow.
 
 ### 5. Run Your First Ticket
 
@@ -296,7 +329,7 @@ After using Pi for several months on this blog, here's what I've found:
 ### Future Improvements
 
 I'm looking forward to:
-- **Custom tool development**: Writing Pi extensions with the SDK for blog-specific tasks (e.g., social card generation)
+- **Custom extensions**: Writing Pi extensions with the SDK for blog-specific tasks (e.g., social card generation) and sharing them with the community
 - **Multi-agent workflows**: Pi agents handling different parts of the pipeline simultaneously
 - **Richer project understanding**: Pi learning from past PR reviews and adapting its code style
 
@@ -304,7 +337,7 @@ I'm looking forward to:
 
 The Pi coding agent has transformed how I maintain this blog. What used to take me an hour of setup, branching, and process work for every article now happens in seconds. More importantly, the **consistency** and **reliability** of the automated workflow means I spend my energy on what matters: writing content that helps other developers.
 
-The combination of a **skill-driven architecture**, **SOPS-enforced security**, and **autonomous agent execution** creates a development environment where ideas flow from conception to deployment with minimal friction.
+The combination of a **skill-driven architecture**, **extensible tools via the SDK**, **SOPS-enforced security**, and **autonomous agent execution** creates a development environment where ideas flow from conception to deployment with minimal friction.
 
 If you maintain a technical blog, open-source project, or any software project with a defined workflow, I highly recommend giving Pi a try. Set up your skills, encrypt your secrets, and let the agent handle the process while you focus on the product.
 

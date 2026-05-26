@@ -1,0 +1,10 @@
+{
+  "model": "deepseek-v4-flash",
+  "provider": "deepseek",
+  "inputTokens": 22488,
+  "outputTokens": 8233,
+  "totalTokens": 30721,
+  "cacheReadTokens": 415616,
+  "cacheWriteTokens": 0,
+  "cost": 0.0066
+}
