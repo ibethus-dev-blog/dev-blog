@@ -36,7 +36,7 @@
         {{- if site.Params.funny.enabled }}
         <div class="funny-quote" id="funny-quote" title="Cliquez pour une autre blague / Click for another joke!">
             <span class="quote-icon">☕</span>
-            <span class="quote-text" id="funny-quote-text">{{ site.Params.funny.quotes | index 0 }}</span>
+            <span class="quote-text" id="funny-quote-text">{{ index site.Params.funny.quotes 0 }}</span>
             <span class="quote-refresh">↻</span>
         </div>
         <script>
