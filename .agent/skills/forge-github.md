@@ -72,17 +72,8 @@ git push -u origin "feat/42-add-rate-limiting"
 ### 6. Create pull request
 
 ```bash
-# First check for PR template
-TEMPLATE=""
-if [ -f ".github/pull_request_template.md" ]; then
-  TEMPLATE="--body-file .github/pull_request_template.md"
-fi
-
-sops exec-env .agent/secrets.enc.yaml "gh pr create \
-  --title 'feat(scope): description of the change' \
-  ${TEMPLATE} \
-  --body '\$(cat <<EOF
-## Summary
+# Build the PR body in a variable (expands correctly, unlike inline heredocs)
+BODY="## Summary
 Brief summary of the change.
 
 ## Changes
@@ -94,15 +85,17 @@ Brief summary of the change.
 2. Step 2
 3. Verify ...
 
-Closes: #42
-EOF
-)' \
+Closes: #42"
+
+sops exec-env .agent/secrets.enc.yaml "gh pr create \
+  --title 'feat(scope): description of the change' \
+  --body '${BODY}' \
   --base main"
 
-# Or with body-file:
+# Or read body from a file:
 sops exec-env .agent/secrets.enc.yaml 'gh pr create \
   --title "feat(scope): description" \
-  --body-file /path/to/pr-body.md \
+  --body-file .github/PULL_REQUEST_BODY.md \
   --base main'
 ```
 
