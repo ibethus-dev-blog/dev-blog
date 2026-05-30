@@ -22,9 +22,6 @@ Use the ticket manager skill (`.agent/skills/ticket-github-projects.md`) to:
 - Fetch the full issue: title, description, acceptance criteria, status, assignee.
 - Display the ticket summary for confirmation.
 
-```bash
-sops exec-env .agent/secrets.enc.yaml 'gh issue view $1 --comments'
-```
 
 Also read ISSUE_NUMBER, ISSUE_TITLE, and ISSUE_BODY from the environment if available (they are pre-populated in CI).
 
@@ -32,29 +29,12 @@ Also read ISSUE_NUMBER, ISSUE_TITLE, and ISSUE_BODY from the environment if avai
 - Assign the ticket to yourself.
 - Add a comment marking it as in-progress.
 
-```bash
-sops exec-env .agent/secrets.enc.yaml 'gh issue edit $1 --add-assignee "@me"'
-sops exec-env .agent/secrets.enc.yaml 'gh issue comment $1 --body "🚧 **Status: In Progress** — implementation started."'
-```
-
 In CI, use the bot identity (`github-actions[bot]`); locally, use your username.
 
 ### Step 3 — Create Branch
 - Derive a branch name from the ticket: `feat/$1-{slugified-title}` or `fix/$1-{slugified-title}` depending on ticket type.
 - Detect the base branch (`main`).
 - Stash any pending changes, checkout base, pull latest, then create the feature branch.
-
-```bash
-TICKET_ID="$1"
-TICKET_TYPE="feat"  # or "fix", "chore", "docs", "refactor" — infer from ticket
-BRANCH_NAME="${TICKET_TYPE}/${TICKET_ID}-short-description"
-BASE_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo "main")
-git fetch origin
-git stash
-git checkout "${BASE_BRANCH}"
-git pull origin "${BASE_BRANCH}"
-git checkout -b "${BRANCH_NAME}"
-```
 
 ### Step 4 — Implement the Feature
 - Read the project structure, understand the codebase conventions (language, framework, testing, linting).
@@ -115,17 +95,7 @@ git push -u origin "${BRANCH_NAME}"
   - **Testing** (exact commands to verify the feature)
 - Reference the ticket ID.
 - Use the forge skill (`.agent/skills/forge-github.md`).
-
-```bash
-sops exec-env .agent/secrets.enc.yaml 'gh pr create \
-  --title "{type}(scope): description" \
-  --body "## Summary
-...
-
-Closes: #$1" \
-  --base main'
-```
-
+- 
 ### Step 8 — Update Ticket with PR Link and Testing Instructions
 - Read the pre-formatted usage footer from `.pi-usage-footer.txt` (written by the CI script).
 - Add a comment with:
@@ -134,29 +104,6 @@ Closes: #$1" \
   - Token usage summary (model, input/output tokens, cost).
   - What environment/configuration is needed.
 
-
-```bash
-# Write the main body to a temp file (quoted EOF prevents variable expansion)
-cat > /tmp/pi-comment.md << 'BODY'
-## ✅ Implemented — Ready for Review
-
-**Branch:** BRANCH_NAME
-**PR:** LINK_TO_PR
-
-### How to test
-INSTRUCTIONS
-
-BODY
-
-# Substitute dynamic values
-sed -i "s|BRANCH_NAME|${BRANCH_NAME}|g; s|LINK_TO_PR|https://github.com/${GITHUB_REPOSITORY}/pull/${PR_URL}|g; s|INSTRUCTIONS|{instructions}|g" /tmp/pi-comment.md
-
-# Append the pre-formatted usage footer
-cat .pi-usage-footer.txt >> /tmp/pi-comment.md
-
-# Post the comment (--body-file avoids quoting issues)
-sops exec-env .agent/secrets.enc.yaml gh issue comment "$1" --body-file /tmp/pi-comment.md
-```
 ### Step 9 — Cleanup
 - Return to the base branch.
 
