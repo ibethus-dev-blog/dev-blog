@@ -59,8 +59,8 @@ jobs:
             --commit-hash="${{ github.sha }}" \
             --commit-message="${{ github.event.pull_request.title }}" 2>&1 | tee /tmp/wrangler-output.txt
 
-          # Extract the deployment URL from wrangler output
-          DEPLOY_URL=$(grep -oP 'https://[a-z0-9-]+\.dev-blog\.pages\.dev' /tmp/wrangler-output.txt | head -1)
+          # Extract the deployment URL from wrangler output (format: https://<hash>.<project>.pages.dev)
+          DEPLOY_URL=$(grep -oP 'https://[a-z0-9]+\.([a-z0-9-]+)\.pages\.dev' /tmp/wrangler-output.txt | head -1) || true
           echo "deploy-url=${DEPLOY_URL}" >> "${GITHUB_OUTPUT}"
 
       - name: Comment deployment URL on PR
