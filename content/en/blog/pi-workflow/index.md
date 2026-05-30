@@ -175,32 +175,9 @@ Once everything is verified:
 4. **Update the ticket** with the PR link and testing instructions
 5. **Clean up** by returning to the base branch
 
-### Phase 7: Preview Deployment via Surge
+### Phase 7: Preview Deployment via cloudlfare
 
-Once the PR is open, a GitHub Actions workflow (`.github/workflows/surge-preview.yml`) automatically deploys a live preview of the site to **Surge.sh**:
-
-```yaml
-# .github/workflows/surge-preview.yml
-name: Deploy Surge Preview
-on:
-  pull_request:
-    types: [opened, reopened, edited, synchronize]
-
-jobs:
-  build-and-deploy:
-    steps:
-      - name: Build with Hugo
-        run: hugo --gc --minify --baseURL "https://test.hot-coffee.dev/"
-      - name: Publish to surge.sh
-        uses: dswistowski/surge-sh-action@v1
-        with:
-          domain: 'test.hot-coffee.dev'
-          project: 'public'
-          login: \${{ secrets.SURGE_LOGIN }}
-          token: \${{ secrets.SURGE_TOKEN }}
-      - name: Comment deployment URL on PR
-        run: gh pr comment "${{ github.event.pull_request.number }}" --body "🚀 Preview deployed to https://test.hot-coffee.dev"
-```
+Once the PR is open, a GitHub Actions workflow (`.github/workflows/cloudlfare-preview.yml`) automatically deploys a live preview of the site to **cloudlfare**.
 
 This workflow triggers on every PR update, building the site and deploying it to a staging domain. A bot comment on the PR provides the live preview URL — perfect for reviewers to see changes without running the site locally.
 

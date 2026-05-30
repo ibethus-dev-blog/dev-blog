@@ -45,9 +45,9 @@ gh variable set PI_PROVIDER  --body "anthropic"          # or: openai, groq, dee
 gh variable set PI_MODEL     --body "claude-sonnet-4-20250514"
 gh variable set PI_THINKING  --body "low"                # off | minimal | low | medium | high | xhigh
 
-# Required for surge.sh preview deploys (see surge-preview.yml)
-gh secret set SURGE_LOGIN --body "your-surge-email@example.com"
-gh secret set SURGE_TOKEN --body "your-surge-token"          # get via: surge token
+# Required for Cloudflare Pages preview deploys (see cloudlfare-preview.yml)
+gh secret set CLOUDFLARE_API_TOKEN     --body "your-cf-api-token"    # Cloudflare API token with Pages:Edit permission
+gh secret set CLOUDFLARE_ACCOUNT_ID    --body "your-account-id"       # Cloudflare account ID
 ```
 
 ### 2. SOPS secrets file
@@ -75,18 +75,52 @@ git push
 | `pi-fix.mjs` | `/fix [instruction]` | PR comment | `/fix-pr <number> [instruction]` |
 | `pi-review-pr.mjs` | `/review [focus]` | PR comment | `/review-mr-pr <number> [focus]` |
 
-## Surge.sh Preview Deploys
+## Cloudflare Pages Preview Deploys
 
-PRs created by the pi pipeline (or any PR) are automatically deployed to **Surge.sh** at `test.hot-coffee.dev` via a separate workflow (`.github/workflows/surge-preview.yml`). It triggers on PR `opened`, `synchronize`, and `reopened`.
+PRs created by the pi pipeline (or any PR) are automatically deployed to **Cloudflare Pages** as preview deployments via a separate workflow (`.github/workflows/cloudlfare-preview.yml`). It triggers on PR `opened`, `synchronize`, and `reopened`.
 
 The build steps are **identical** to the production Hugo Pages workflow — same Hugo version, flags, and dependencies.
 
-To set up Surge:
+### 1. Create the Cloudflare Pages project (one-time setup)
+
+Before the workflow can run, you need to create a Pages project in the Cloudflare dashboard using the **Direct Upload** method (not Git integration, since we deploy from GitHub Actions):
 
 ```bash
-npm install -g surge
-surge token
-
-gh secret set SURGE_LOGIN --body "your@email.com"
-gh secret set SURGE_TOKEN --body "your-token-here"
+# Use Wrangler to create the project interactively
+npx wrangler pages project create dev-blog
 ```
+
+This will prompt you for:
+- **Project name**: `dev-blog`
+- **Production branch**: `main`
+
+Your project will be available at `https://dev-blog.pages.dev`.
+
+### 2. Generate a Cloudflare API token
+
+1. Go to the [API Tokens page](https://dash.cloudflare.com/profile/api-tokens) in your Cloudflare dashboard
+2. Select **Create Token** > **Custom Token** > **Get started**
+3. Name your token (e.g., "GitHub Actions - Pages")
+4. Under **Permissions**, add:
+   - Account → Cloudflare Pages → **Edit**
+5. Select **Continue to summary** > **Create Token**
+6. Copy the token immediately (it won't be shown again)
+
+### 3. Find your Cloudflare Account ID
+
+Your account ID is visible in the [Cloudflare dashboard](https://dash.cloudflare.com/) under **Overview** → **API** section on the right-hand side.
+
+### 4. Set GitHub secrets
+
+```bash
+gh secret set CLOUDFLARE_API_TOKEN  --body "<your-api-token>"
+gh secret set CLOUDFLARE_ACCOUNT_ID --body "<your-account-id>"
+```
+
+### 5. (Optional) Configure a custom domain
+
+If you want previews to be accessible at `test.hot-coffee.dev` instead of `https://<branch>.dev-blog.pages.dev`, add a custom domain from the Cloudflare dashboard:
+
+1. Go to **Workers & Pages** → your project (`dev-blog`) → **Custom domains**
+2. Click **Add custom domain** and enter `test.hot-coffee.dev`
+3. Cloudflare will automatically issue an SSL certificate and configure DNS

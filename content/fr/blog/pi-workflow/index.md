@@ -175,32 +175,9 @@ Une fois que tout est vérifié :
 4. **Mise à jour du ticket** avec le lien de la PR et les instructions de test
 5. **Nettoyage** en retournant à la branche de base
 
-### Phase 7 : Déploiement de Prévisualisation via Surge
+### Phase 7 : Déploiement de Prévisualisation via cloudlfare
 
-Une fois la PR ouverte, un workflow GitHub Actions (`.github/workflows/surge-preview.yml`) déploie automatiquement une prévisualisation en direct du site sur **Surge.sh** :
-
-```yaml
-# .github/workflows/surge-preview.yml
-name: Deploy Surge Preview
-on:
-  pull_request:
-    types: [opened, reopened, edited, synchronize]
-
-jobs:
-  build-and-deploy:
-    steps:
-      - name: Build with Hugo
-        run: hugo --gc --minify --baseURL "https://test.hot-coffee.dev/"
-      - name: Publish to surge.sh
-        uses: dswistowski/surge-sh-action@v1
-        with:
-          domain: 'test.hot-coffee.dev'
-          project: 'public'
-          login: \${{ secrets.SURGE_LOGIN }}
-          token: \${{ secrets.SURGE_TOKEN }}
-      - name: Comment deployment URL on PR
-        run: gh pr comment "${{ github.event.pull_request.number }}" --body "🚀 Preview deployed to https://test.hot-coffee.dev"
-```
+Une fois la PR ouverte, un workflow GitHub Actions (`.github/workflows/cloudlfare-preview.yml`) déploie automatiquement une prévisualisation en direct du site sur **cloudlfare**.
 
 Ce workflow se déclenche à chaque mise à jour de la PR, compile le site et le déploie sur un domaine de staging. Un commentaire automatique sur la PR fournit l'URL de prévisualisation en direct — parfait pour que les relecteurs voient les changements sans exécuter le site localement.
 

@@ -1,5 +1,5 @@
-# Deploy PR previews to Surge.sh
-name: Deploy Surge Preview
+# Deploy PR previews to Cloudflare Pages
+name: Deploy Cloudflare Pages Preview
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ permissions:
 
 # Allow only one concurrent deployment per PR
 concurrency:
-  group: surge-${{ github.event.pull_request.number }}
+  group: cf-preview-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 defaults:
@@ -47,19 +47,30 @@ jobs:
             --gc \
             --minify \
             --baseURL "https://test.hot-coffee.dev/"
-      - name: Publish to surge.sh
-        uses: dswistowski/surge-sh-action@v1
-        with:
-          domain: 'test.hot-coffee.dev'
-          project: 'public'
-          login: ${{ secrets.SURGE_LOGIN }}
-          token: ${{ secrets.SURGE_TOKEN }}
+      - name: Deploy to Cloudflare Pages
+        id: cf-deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler pages deploy public \
+            --project-name=dev-blog \
+            --branch="${{ github.head_ref }}" \
+            --commit-hash="${{ github.sha }}" \
+            --commit-message="${{ github.event.pull_request.title }}" 2>&1 | tee /tmp/wrangler-output.txt
+
+          # Extract the deployment URL from wrangler output
+          DEPLOY_URL=$(grep -oP 'https://[a-z0-9-]+\.dev-blog\.pages\.dev' /tmp/wrangler-output.txt | head -1)
+          echo "deploy-url=${DEPLOY_URL}" >> "${GITHUB_OUTPUT}"
 
       - name: Comment deployment URL on PR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          DEPLOY_URL: https://test.hot-coffee.dev
         run: |
+          DEPLOY_URL="${{ steps.cf-deploy.outputs.deploy-url }}"
+          if [ -z "${DEPLOY_URL}" ]; then
+            DEPLOY_URL="https://test.hot-coffee.dev"
+          fi
           gh pr comment "${PR_NUMBER}" \
             --body "🚀 Preview deployed to [${DEPLOY_URL}](${DEPLOY_URL})"
