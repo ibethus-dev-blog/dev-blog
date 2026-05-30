@@ -45,7 +45,7 @@ gh variable set PI_PROVIDER  --body "anthropic"          # or: openai, groq, dee
 gh variable set PI_MODEL     --body "claude-sonnet-4-20250514"
 gh variable set PI_THINKING  --body "low"                # off | minimal | low | medium | high | xhigh
 
-# Required for Cloudflare Pages preview deploys (see cloudlfare-preview.yml)
+# Required for Cloudflare Pages preview deploys (see cloudflare-preview.yml)
 gh secret set CLOUDFLARE_API_TOKEN     --body "your-cf-api-token"    # Cloudflare API token with Pages:Edit permission
 gh secret set CLOUDFLARE_ACCOUNT_ID    --body "your-account-id"       # Cloudflare account ID
 ```
@@ -77,7 +77,7 @@ git push
 
 ## Cloudflare Pages Preview Deploys
 
-PRs created by the pi pipeline (or any PR) are automatically deployed to **Cloudflare Pages** as preview deployments via a separate workflow (`.github/workflows/cloudlfare-preview.yml`). It triggers on PR `opened`, `synchronize`, and `reopened`.
+PRs created by the pi pipeline (or any PR) are automatically deployed to **Cloudflare Pages** as preview deployments via a separate workflow (`.github/workflows/cloudflare-preview.yml`). It triggers on PR `opened`, `synchronize`, and `reopened`.
 
 The build steps are **identical** to the production Hugo Pages workflow — same Hugo version, flags, and dependencies.
 
