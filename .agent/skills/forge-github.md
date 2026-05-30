@@ -11,6 +11,7 @@ description: Use GitHub as a software forge for the project
 **Token scopes required:** `repo`, `read:org`, `project`
 
 > 🔐 **All commands require SOPS.** Run from the project root. Encrypted secrets at `.agent/secrets.enc.yaml`.
+> **The exact syntax is :** sops exec-env .agent/secrets.enc.yaml "your command here"
 
 ---
 
