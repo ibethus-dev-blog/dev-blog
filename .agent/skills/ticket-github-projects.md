@@ -15,6 +15,16 @@ description: Use GitHub Issues + Projects as a ticket manager for the project
 
 ---
 
+## 🧭 How to Use This Skill (READ THIS FIRST)
+
+1. **Read this entire file** before executing any operations.
+2. Every `gh` command **must** be wrapped with `sops exec-env .agent/secrets.enc.yaml '...'`.
+3. If any command exits with a non-zero code → **STOP**, read the error, and report it. Do NOT skip failures or simulate success.
+4. Do NOT sudo, do NOT modify files outside the worktree, do NOT edit files inside `themes/` (they are submodules).
+5. **Never** log or display the contents of decrypted secrets.
+
+---
+
 ## Setup
 
 ```bash
@@ -102,12 +112,24 @@ sops exec-env .agent/secrets.enc.yaml 'gh issue edit ISSUE_NUMBER --add-assignee
 
 ### 5. Add comment to ticket
 
+Always use **`--body-file`** with a temp file to avoid quoting issues with newlines, backticks, and special characters.
+
 ```bash
-sops exec-env .agent/secrets.enc.yaml 'gh issue comment ISSUE_NUMBER --body "## Testing instructions
-1. Checkout branch \`feat/ISSUE_NUMBER-short-description\`
-2. Run \`npm test\`
-3. Verify that ..."'
+# ✅ RECOMMENDED: Write body to a temp file, then use --body-file
+cat > /tmp/comment-body.md << 'EOF'
+## Testing instructions
+1. Checkout branch `feat/ISSUE_NUMBER-short-description`
+2. Run `npm test`
+3. Verify that ...
+EOF
+
+sops exec-env .agent/secrets.enc.yaml 'gh issue comment ISSUE_NUMBER --body-file /tmp/comment-body.md'
+
+# Clean up
+rm -f /tmp/comment-body.md
 ```
+
+> ⚠️ **Avoid inline `--body` with newlines or backticks.** Nested quoting inside `sops exec-env` is error-prone. The `--body-file` pattern handles all special characters safely.
 
 ### 6. List available statuses / transitions
 

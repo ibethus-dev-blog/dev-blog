@@ -11,6 +11,16 @@ description: Encrypted secrets management using SOPS + age
 
 ---
 
+## 🧭 How to Use This Skill (READ THIS FIRST)
+
+1. **Read this entire file** before executing any operations.
+2. Every command that needs credentials **must** use `sops exec-env` — never extract secrets to a plaintext file.
+3. The only allowed encryption/decryption pattern is: `sops exec-env .agent/secrets.enc.yaml 'your-command-here'`.
+4. **Never** display, log, or echo the contents of decrypted secrets.
+5. If `sops exec-env` fails, report the error — do NOT try alternative decryption methods.
+
+---
+
 ## Architecture
 
 ```
