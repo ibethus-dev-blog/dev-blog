@@ -68,8 +68,9 @@ body: Implement a configurable rate limiter...
 In GitHub Projects v2, status is a project field. You need the project number, the item ID, the field ID for "Status", and the option ID for the target status.
 
 ```bash
-# Step 1: Find the project number
-sops exec-env .agent/secrets.enc.yaml 'gh projects list --user "@me" --format=json | jq ".projects[] | {number, title}"'
+# Step 1: Find the project number and ID
+#         (the "id" field is the global node ID needed for Step 4)
+sops exec-env .agent/secrets.enc.yaml 'gh projects list --user "@me" --format=json | jq ".projects[] | {number, title, id}"'
 
 # Step 2: List fields to find the Status field ID
 sops exec-env .agent/secrets.enc.yaml 'gh projects field-list PROJECT_NUMBER --user "@me" --format=json | jq ".fields[] | {id, name}"'
@@ -78,6 +79,10 @@ sops exec-env .agent/secrets.enc.yaml 'gh projects field-list PROJECT_NUMBER --u
 sops exec-env .agent/secrets.enc.yaml 'gh projects field-list PROJECT_NUMBER --user "@me" --format=json | jq ".fields[] | select(.name==\"Status\") | .options"'
 
 # Step 4: Update the item's status field
+#         ⚠️  PROJECT_ID is the project's global node ID (e.g. "PVT_..."),
+#            NOT the numeric project number. Get it from Step 1 via the "id" field.
+#         ⚠️  ITEM_ID is the project item ID (e.g. "PVTI_..."), NOT the issue number.
+#            Get it from: gh projects item-list PROJECT_NUMBER --user "@me" --format=json
 sops exec-env .agent/secrets.enc.yaml 'gh projects item-edit \
   --id ITEM_ID \
   --field-id FIELD_ID \
