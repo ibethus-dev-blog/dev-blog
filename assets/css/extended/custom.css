@@ -1,3 +1,36 @@
+/* Homepage content styling */
+.home-content {
+    max-width: var(--nav-width, 800px);
+    margin: 0 auto;
+    padding: 1rem 1.5rem 2rem;
+    text-align: center;
+    line-height: 1.8;
+}
+
+.home-content ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.home-content ul li {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.home-content p:first-child {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.home-content a {
+    font-weight: 600;
+}
+
 .mermaid {
     background-color: rgb(245, 245, 245) !important;
 }

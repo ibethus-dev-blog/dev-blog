@@ -30,7 +30,7 @@ languages:
           url: /search
           weight: 2
     params:
-      subtitle: "Just another dev blog."
+      subtitle: "A passionate developer sharing knowledge, tips, and insights about **Java**, **DevOps**, and **software engineering** — one cup of coffee at a time. ☕"
       buttons:
       - name: Blog
         url: "blog"
@@ -55,7 +55,7 @@ languages:
           url: search
           weight: 2
     params:
-      subtitle: "Juste un blog de dev."
+      subtitle: "Un développeur passionné partageant connaissances, astuces et réflexions sur **Java**, **DevOps** et le **développement logiciel** — un café à la fois. ☕"
       buttons:
       - name: Blog
         url: "blog"
