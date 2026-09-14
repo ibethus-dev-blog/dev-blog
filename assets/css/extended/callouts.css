@@ -1,0 +1,45 @@
+/* Blocs d'alerte : > texte {.tip|.info|.warning} (goldmark pose la classe sur le <p> interne) */
+:root {
+    --callout-tip: rgb(38, 143, 82);
+    --callout-tip-bg: rgba(38, 143, 82, 0.08);
+    --callout-info: rgb(38, 105, 194);
+    --callout-info-bg: rgba(38, 105, 194, 0.08);
+    --callout-warning: rgb(194, 58, 48);
+    --callout-warning-bg: rgba(194, 58, 48, 0.08);
+}
+
+.dark {
+    --callout-tip-bg: rgba(38, 143, 82, 0.15);
+    --callout-info-bg: rgba(38, 105, 194, 0.15);
+    --callout-warning-bg: rgba(194, 58, 48, 0.15);
+}
+
+.post-content blockquote:has(> p.tip),
+.post-content blockquote:has(> p.info),
+.post-content blockquote:has(> p.warning) {
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    border-inline-start-width: 4px;
+}
+
+.post-content blockquote:has(> p.tip) {
+    border-inline-start-color: var(--callout-tip);
+    background: var(--callout-tip-bg);
+}
+
+.post-content blockquote:has(> p.info) {
+    border-inline-start-color: var(--callout-info);
+    background: var(--callout-info-bg);
+}
+
+.post-content blockquote:has(> p.warning) {
+    border-inline-start-color: var(--callout-warning);
+    background: var(--callout-warning-bg);
+}
+
+.post-content blockquote p.tip::before,
+.post-content blockquote p.info::before,
+.post-content blockquote p.warning::before {
+    display: block;
+    font-size: 1.1em;
+}
